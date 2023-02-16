@@ -1,9 +1,8 @@
-﻿namespace BusinessEconomyManager.Dtos
+﻿namespace BusinessEconomyManager.DTOs
 {
     public class CreateSupplierRequestDto
     {
         public string Name { get; set; }
-        public Guid? ServiceSuppliedTypeId { get; set; }
-        public Guid UserBusinessId { get; set; }
+        public Guid BusinessId { get; set; }
     }
 }

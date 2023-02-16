@@ -1,4 +1,6 @@
-﻿using BusinessEconomyManager.Models;
+﻿
+
+using BusinessEconomyManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BusinessEconomyManager.Data
@@ -9,16 +11,16 @@ namespace BusinessEconomyManager.Data
         {
         }
 
-        public DbSet<ServiceSuppliedType> ServiceSuppliedTypes { get; set; }
+        public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<Business> Businesses { get; set; }
+        public DbSet<BusinessPeriod> BusinessPeriods { get; set; }
+        public DbSet<BusinessSaleTransaction> BusinessSaleTransactions { get; set; }
+        public DbSet<BusinessExpenseTransaction> BusinessExpenseTransactions { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
-        public DbSet<SupplierOperation> SupplierOperations { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<UserBusiness> UserBusinesses { get; set; }
-        public DbSet<UserBusinessPeriod> UserBusinessPeriods { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Global turn off delete behaviour on foreign keys
+            base.OnModelCreating(modelBuilder);
             modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).ToList().ForEach(x => x.DeleteBehavior = DeleteBehavior.NoAction);
         }
     }

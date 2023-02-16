@@ -1,0 +1,20 @@
+﻿using BusinessEconomyManager.DTOs;
+using BusinessEconomyManager.Models;
+
+namespace BusinessEconomyManager.Services.Implementations
+{
+    public interface IBusinessServices
+    {
+        Task CreateBusiness(CreateBusinessRequestDto request, Guid appUserId);
+        Task CreateBusinessExpenseTransaction(CreateBusinessExpenseTransactionRequestDto request, Guid appUserId);
+        Task CreateBusinessPeriod(CreateBusinessPeriodRequestDto request, Guid appUserId);
+        Task CreateBusinessSaleTransaction(CreateBusinessSaleTransactionRequestDto request, Guid appUserId);
+        Task CreateSupplier(CreateSupplierRequestDto request, Guid appUserId);
+        Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId);
+        Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId);
+        Task<Business> GetBusiness(Guid appUserId);
+        Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId);
+        Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
+        Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
+    }
+}

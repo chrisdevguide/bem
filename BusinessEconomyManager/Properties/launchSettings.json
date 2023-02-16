@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "IdentityService": {
+    "BusinessEconomyManager": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,

@@ -105,9 +105,9 @@ namespace BusinessEconomyManager.Services.Implementations
             await _businessRepository.UpdateBusinessSaleTransaction(businessSaleTransactionUpdated);
         }
 
-        public async Task DeleteBusinessSaleTransaction(Guid businessSaleTransactionId, Guid appUserId)
+        public async Task DeleteBusinessSaleTransaction(Guid businessExpenseTransactionId, Guid appUserId)
         {
-            await _businessRepository.DeleteBusinessSaleTransaction(businessSaleTransactionId, appUserId);
+            await _businessRepository.DeleteBusinessSaleTransaction(businessExpenseTransactionId, appUserId);
         }
 
         public async Task CreateBusinessExpenseTransaction(CreateBusinessExpenseTransactionRequestDto request, Guid appUserId)
@@ -123,6 +123,27 @@ namespace BusinessEconomyManager.Services.Implementations
 
             BusinessExpenseTransaction businessExpenseTransaction = _mapper.Map<BusinessExpenseTransaction>(request);
             await _businessRepository.CreateBusinessExpenseTransaction(businessExpenseTransaction);
+        }
+
+        public async Task UpdateBusinessExpenseTransaction(UpdateBusinessExpenseTransactionRequestDto request, Guid appUserId)
+        {
+            BusinessExpenseTransaction businessExpenseTransaction = await _businessRepository.GetBusinessExpenseTransaction(request.BusinessExpenseTransactionId, appUserId);
+            if (businessExpenseTransaction == null) throw new ApiException()
+            {
+                ErrorMessage = "Transaction not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            if (!request.IsValid(businessExpenseTransaction.BusinessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
+
+            BusinessExpenseTransaction businessExpenseTransactionToUpdate = _mapper.Map<BusinessExpenseTransaction>(request);
+            businessExpenseTransactionToUpdate.BusinessPeriodId = businessExpenseTransaction.BusinessPeriodId;
+            await _businessRepository.UpdateBusinessExpenseTransaction(businessExpenseTransactionToUpdate);
+        }
+
+        public async Task DeleteBusinessExpenseTransaction(Guid businessSaleTransactionId, Guid appUserId)
+        {
+            await _businessRepository.DeleteBusinessExpenseTransaction(businessSaleTransactionId, appUserId);
         }
 
         public async Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId)

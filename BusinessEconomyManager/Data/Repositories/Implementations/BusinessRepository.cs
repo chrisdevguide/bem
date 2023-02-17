@@ -12,11 +12,13 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         {
             _dataContext = dataContext;
         }
+
         public async Task CreateBusiness(Business business)
         {
             _dataContext.Businesses.Add(business);
             await _dataContext.SaveChangesAsync();
         }
+
         public async Task<Business> GetBusiness(Guid appUserId)
         {
             return await _dataContext.Businesses.Where(x => x.AppUserId == appUserId).SingleOrDefaultAsync();
@@ -84,6 +86,25 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task UpdateBusinessExpenseTransaction(BusinessExpenseTransaction BusinessExpenseTransaction)
+        {
+            _dataContext.BusinessExpenseTransactions.Update(BusinessExpenseTransaction);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteBusinessExpenseTransaction(Guid businessExpenseTransaction, Guid appUserId)
+        {
+            BusinessExpenseTransaction businessExpenseTransactionToDelete = await _dataContext.BusinessExpenseTransactions.SingleOrDefaultAsync(x => x.Id == businessExpenseTransaction && x.BusinessPeriod.Business.AppUserId == appUserId);
+            if (businessExpenseTransactionToDelete is null) throw new ApiException()
+            {
+                ErrorMessage = "Transaction not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            _dataContext.BusinessExpenseTransactions.Remove(businessExpenseTransactionToDelete);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId)
         {
             return await _dataContext.BusinessSaleTransactions
@@ -95,7 +116,10 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
 
         public async Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId)
         {
-            return await _dataContext.BusinessExpenseTransactions.SingleOrDefaultAsync(x => x.Id == transactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
+            return await _dataContext.BusinessExpenseTransactions
+                .AsNoTracking()
+                .Include(x => x.BusinessPeriod)
+                .SingleOrDefaultAsync(x => x.Id == transactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
         }
 
         public async Task CreateSupplier(Supplier supplier)

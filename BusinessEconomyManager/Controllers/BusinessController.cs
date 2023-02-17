@@ -85,6 +85,22 @@ namespace BusinessEconomyManager.Controllers
             return Ok();
         }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateBusinessExpenseTransaction([Required] UpdateBusinessExpenseTransactionRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.UpdateBusinessExpenseTransaction(request, appUserId);
+            return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteBusinessExpenseTransaction([Required] Guid businessExpenseTransactionId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.DeleteBusinessExpenseTransaction(businessExpenseTransactionId, appUserId);
+            return Ok();
+        }
+
         [HttpGet]
         public async Task<ActionResult<BusinessSaleTransaction>> GetBusinessSaleTransaction([Required] Guid transactionId)
         {

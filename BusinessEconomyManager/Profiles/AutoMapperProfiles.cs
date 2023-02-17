@@ -14,6 +14,7 @@ namespace BusinessEconomyManager.Profiles
             CreateMap<CreateBusinessRequestDto, Business>();
             CreateMap<CreateBusinessPeriodRequestDto, BusinessPeriod>();
             CreateMap<CreateBusinessSaleTransactionRequestDto, BusinessSaleTransaction>();
+            CreateMap<UpdateBusinessSaleTransactionRequestDto, BusinessSaleTransaction>().ForMember(x => x.Id, opt => opt.MapFrom(x => x.BusinessSaleTransactionId));
             CreateMap<CreateBusinessExpenseTransactionRequestDto, BusinessExpenseTransaction>();
             CreateMap<CreateSupplierRequestDto, Supplier>();
         }

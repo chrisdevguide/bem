@@ -17,7 +17,7 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBusiness(CreateBusinessRequestDto createBusinessRequestDto)
+        public async Task<ActionResult> CreateBusiness([Required] CreateBusinessRequestDto createBusinessRequestDto)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             await _businessServices.CreateBusiness(createBusinessRequestDto, appUserId);
@@ -32,7 +32,7 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBusinessPeriod(CreateBusinessPeriodRequestDto request)
+        public async Task<ActionResult> CreateBusinessPeriod([Required] CreateBusinessPeriodRequestDto request)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             await _businessServices.CreateBusinessPeriod(request, appUserId);
@@ -40,7 +40,7 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<BusinessPeriod>> GetBusinessPeriod(Guid businessPeriodId)
+        public async Task<ActionResult<BusinessPeriod>> GetBusinessPeriod([Required] Guid businessPeriodId)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             return Ok(await _businessServices.GetBusinessPeriod(businessPeriodId, appUserId));
@@ -54,15 +54,31 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBusinessSaleTransaction(CreateBusinessSaleTransactionRequestDto request)
+        public async Task<ActionResult> CreateBusinessSaleTransaction([Required] CreateBusinessSaleTransactionRequestDto request)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             await _businessServices.CreateBusinessSaleTransaction(request, appUserId);
             return Ok();
         }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateBusinessSaleTransaction([Required] UpdateBusinessSaleTransactionRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.UpdateBusinessSaleTransaction(request, appUserId);
+            return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteBusinessSaleTransaction([Required] Guid businessSaleTransactionId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.DeleteBusinessSaleTransaction(businessSaleTransactionId, appUserId);
+            return Ok();
+        }
+
         [HttpPost]
-        public async Task<ActionResult> CreateBusinessExpenseTransaction(CreateBusinessExpenseTransactionRequestDto request)
+        public async Task<ActionResult> CreateBusinessExpenseTransaction([Required] CreateBusinessExpenseTransactionRequestDto request)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             await _businessServices.CreateBusinessExpenseTransaction(request, appUserId);
@@ -84,7 +100,7 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateSupplier(CreateSupplierRequestDto request)
+        public async Task<ActionResult> CreateSupplier([Required] CreateSupplierRequestDto request)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             await _businessServices.CreateSupplier(request, appUserId);

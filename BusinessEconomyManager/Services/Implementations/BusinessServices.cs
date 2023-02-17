@@ -89,6 +89,27 @@ namespace BusinessEconomyManager.Services.Implementations
             await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
         }
 
+        public async Task UpdateBusinessSaleTransaction(UpdateBusinessSaleTransactionRequestDto request, Guid appUserId)
+        {
+            BusinessSaleTransaction businessSaleTransaction = await _businessRepository.GetBusinessSaleTransaction(request.BusinessSaleTransactionId, appUserId);
+            if (businessSaleTransaction == null) throw new ApiException()
+            {
+                ErrorMessage = "Transaction not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            if (!request.IsValid(businessSaleTransaction.BusinessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
+
+            BusinessSaleTransaction businessSaleTransactionUpdated = _mapper.Map<BusinessSaleTransaction>(request);
+            businessSaleTransactionUpdated.BusinessPeriodId = businessSaleTransaction.BusinessPeriodId;
+            await _businessRepository.UpdateBusinessSaleTransaction(businessSaleTransactionUpdated);
+        }
+
+        public async Task DeleteBusinessSaleTransaction(Guid businessSaleTransactionId, Guid appUserId)
+        {
+            await _businessRepository.DeleteBusinessSaleTransaction(businessSaleTransactionId, appUserId);
+        }
+
         public async Task CreateBusinessExpenseTransaction(CreateBusinessExpenseTransactionRequestDto request, Guid appUserId)
         {
             BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(request.BusinessPeriodId, appUserId);

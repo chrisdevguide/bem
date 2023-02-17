@@ -1,4 +1,5 @@
 ﻿using BusinessEconomyManager.Models;
+using BusinessEconomyManager.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BusinessEconomyManager.Data.Repositories.Implementations
@@ -11,13 +12,11 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         {
             _dataContext = dataContext;
         }
-
         public async Task CreateBusiness(Business business)
         {
             _dataContext.Businesses.Add(business);
             await _dataContext.SaveChangesAsync();
         }
-
         public async Task<Business> GetBusiness(Guid appUserId)
         {
             return await _dataContext.Businesses.Where(x => x.AppUserId == appUserId).SingleOrDefaultAsync();
@@ -37,6 +36,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         public async Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId)
         {
             return await _dataContext.BusinessPeriods
+                .Include(x => x.Business)
                 .Include(x => x.BusinessSaleTransactions)
                 .Include(x => x.BusinessExpenseTransactions)
                 .ThenInclude(x => x.Supplier)
@@ -59,15 +59,40 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task UpdateBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction)
+        {
+            _dataContext.BusinessSaleTransactions.Update(businessSaleTransaction);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteBusinessSaleTransaction(Guid businessSaleTransactionId, Guid appUserId)
+        {
+            BusinessSaleTransaction businessSaleTransactionToDelete = await _dataContext.BusinessSaleTransactions.SingleOrDefaultAsync(x => x.Id == businessSaleTransactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
+            if (businessSaleTransactionToDelete is null) throw new ApiException()
+            {
+                ErrorMessage = "Transaction not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            _dataContext.BusinessSaleTransactions.Remove(businessSaleTransactionToDelete);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task CreateBusinessExpenseTransaction(BusinessExpenseTransaction businessExpenseTransaction)
         {
             _dataContext.BusinessExpenseTransactions.Add(businessExpenseTransaction);
             await _dataContext.SaveChangesAsync();
         }
+
         public async Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId)
         {
-            return await _dataContext.BusinessSaleTransactions.SingleOrDefaultAsync(x => x.Id == transactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
+            return await _dataContext.BusinessSaleTransactions
+                .AsNoTracking()
+                .Include(x => x.BusinessPeriod)
+                .ThenInclude(x => x.Business)
+                .SingleOrDefaultAsync(x => x.Id == transactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
         }
+
         public async Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId)
         {
             return await _dataContext.BusinessExpenseTransactions.SingleOrDefaultAsync(x => x.Id == transactionId && x.BusinessPeriod.Business.AppUserId == appUserId);

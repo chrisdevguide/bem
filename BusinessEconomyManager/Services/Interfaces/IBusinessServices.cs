@@ -11,12 +11,14 @@ namespace BusinessEconomyManager.Services.Implementations
         Task CreateBusinessSaleTransaction(CreateBusinessSaleTransactionRequestDto request, Guid appUserId);
         Task CreateSupplier(CreateSupplierRequestDto request, Guid appUserId);
         Task DeleteBusinessExpenseTransaction(Guid businessSaleTransactionId, Guid appUserId);
+        Task DeleteBusinessPeriod(Guid businessPeriodId, Guid appUserId);
         Task DeleteBusinessSaleTransaction(Guid businessExpenseTransactionId, Guid appUserId);
         Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId);
         Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId);
         Task<Business> GetBusiness(Guid appUserId);
         Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId);
         Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
+        Task<GetBusinessPeriodDetailsResponseDto> GetBusinessPeriodDetails(Guid businessPeriodId, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
         Task UpdateBusinessExpenseTransaction(UpdateBusinessExpenseTransactionRequestDto request, Guid appUserId);
         Task UpdateBusinessSaleTransaction(UpdateBusinessSaleTransactionRequestDto request, Guid appUserId);

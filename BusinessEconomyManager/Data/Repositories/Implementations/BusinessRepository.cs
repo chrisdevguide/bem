@@ -45,6 +45,21 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .SingleOrDefaultAsync(x => x.Id == businessPeriodId && x.Business.AppUserId == appUserId);
         }
 
+        public async Task DeleteBusinessPeriod(Guid businessPeriodId, Guid appUserId)
+        {
+            BusinessPeriod businessPeriodToDelete = await GetBusinessPeriod(businessPeriodId, appUserId);
+            if (businessPeriodToDelete is null) throw new ApiException()
+            {
+                ErrorMessage = "Business period not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            _dataContext.BusinessSaleTransactions.RemoveRange(businessPeriodToDelete.BusinessSaleTransactions);
+            _dataContext.BusinessExpenseTransactions.RemoveRange(businessPeriodToDelete.BusinessExpenseTransactions);
+            _dataContext.BusinessPeriods.Remove(businessPeriodToDelete);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId)
         {
             return await _dataContext.BusinessPeriods.Where(x => x.Business.AppUserId == appUserId).ToListAsync();

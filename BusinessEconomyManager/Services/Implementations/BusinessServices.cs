@@ -69,6 +69,25 @@ namespace BusinessEconomyManager.Services.Implementations
             return await _businessRepository.GetBusinessPeriod(businessPeriodId, appUserId);
         }
 
+        public async Task DeleteBusinessPeriod(Guid businessPeriodId, Guid appUserId)
+        {
+            await _businessRepository.DeleteBusinessPeriod(businessPeriodId, appUserId);
+        }
+
+        public async Task<GetBusinessPeriodDetailsResponseDto> GetBusinessPeriodDetails(Guid businessPeriodId, Guid appUserId)
+        {
+            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(businessPeriodId, appUserId);
+            GetBusinessPeriodDetailsResponseDto response = new()
+            {
+                BusinessPeriod = businessPeriod,
+                TotalSaleTransactionsByCash = businessPeriod?.BusinessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
+                TotalSaleTransactionsByCreditCard = businessPeriod?.BusinessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+                TotalExpenseTransactionsByCash = businessPeriod?.BusinessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
+                TotalExpenseTransactionsByCreditCard = businessPeriod?.BusinessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+            };
+            return response;
+        }
+
         public async Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId)
         {
             return await _businessRepository.GetAppUserBusinessPeriods(appUserId);

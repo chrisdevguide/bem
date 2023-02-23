@@ -46,6 +46,21 @@ namespace BusinessEconomyManager.Controllers
             return Ok(await _businessServices.GetBusinessPeriod(businessPeriodId, appUserId));
         }
 
+        [HttpDelete]
+        public async Task<ActionResult> DeleteBusinessPeriod([Required] Guid businessPeriodId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.DeleteBusinessPeriod(businessPeriodId, appUserId);
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<GetBusinessPeriodDetailsResponseDto>> GetBusinessPeriodDetails([Required] Guid businessPeriodId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            return Ok(await _businessServices.GetBusinessPeriodDetails(businessPeriodId, appUserId));
+        }
+
         [HttpGet]
         public async Task<ActionResult<List<BusinessPeriod>>> GetAppUserBusinessPeriods()
         {

@@ -10,8 +10,6 @@ namespace BusinessEconomyManager.DTOs
         public DateTime DateFrom { get; set; }
         [Required]
         public DateTime DateTo { get; set; }
-        [Required]
-        public Guid BusinessId { get; set; }
 
         public bool IsValid(out string errorMessage)
         {

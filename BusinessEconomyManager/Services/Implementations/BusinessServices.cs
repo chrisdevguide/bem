@@ -48,9 +48,10 @@ namespace BusinessEconomyManager.Services.Implementations
 
         public async Task CreateBusinessPeriod(CreateBusinessPeriodRequestDto request, Guid appUserId)
         {
-            if (!await _businessRepository.BusinessExists(request.BusinessId, appUserId)) throw new ApiException()
+            Business business = await _businessRepository.GetBusiness(appUserId);
+            if (business is null) throw new ApiException()
             {
-                ErrorMessage = "Business not found.",
+                ErrorMessage = "The user doesn't have a business.",
                 StatusCode = StatusCodes.Status404NotFound
             };
 
@@ -61,6 +62,7 @@ namespace BusinessEconomyManager.Services.Implementations
             };
 
             BusinessPeriod businessPeriod = _mapper.Map<BusinessPeriod>(request);
+            businessPeriod.BusinessId = business.Id;
             await _businessRepository.CreateBusinessPeriod(businessPeriod);
         }
 

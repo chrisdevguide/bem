@@ -19,7 +19,7 @@ namespace BusinessEconomyManager.Services.Implementations
             _authenticationService = authenticationService;
         }
 
-        public async Task<RegisterResponseDto> Register(string emailAddress, string password)
+        public async Task<AppUserDto> Register(string emailAddress, string password)
         {
             if (await _appUserRepository.AppUserExists(emailAddress))
                 throw new ApiException("User already exists.");
@@ -43,7 +43,7 @@ namespace BusinessEconomyManager.Services.Implementations
             };
         }
 
-        public async Task<LoginResponseDto> Login(string emailAddress, string password)
+        public async Task<AppUserDto> Login(string emailAddress, string password)
         {
             AppUser appUser = await _appUserRepository.GetAppUser(emailAddress);
             if (appUser == null) throw new ApiException()

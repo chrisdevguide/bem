@@ -19,14 +19,14 @@ namespace BusinessEconomyManager.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<RegisterResponseDto>> Register([Required][EmailAddress] string emailAddress, [Required][MinLength(8)] string password)
+        public async Task<ActionResult<AppUserDto>> Register([Required][EmailAddress] string emailAddress, [Required][MinLength(8)] string password)
         {
             return Ok(await _appUserServices.Register(emailAddress, password));
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<LoginResponseDto>> Login([Required][EmailAddress] string emailAddress, [Required][MinLength(8)] string password)
+        public async Task<ActionResult<AppUserDto>> Login([Required][EmailAddress] string emailAddress, [Required][MinLength(8)] string password)
         {
             return Ok(await _appUserServices.Login(emailAddress, password));
         }

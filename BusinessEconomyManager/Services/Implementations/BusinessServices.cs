@@ -193,5 +193,23 @@ namespace BusinessEconomyManager.Services.Implementations
         {
             return await _businessRepository.GetAppUserSuppliers(appUserId);
         }
+
+        public async Task<GetBusinessStatisticsResponseDto> GetBusinessStatistics(GetBusinessStatisticsRequestDto request, Guid appUserId)
+        {
+            if (!request.IsValid(out string errorMessage)) throw new ApiException(errorMessage);
+
+            List<BusinessSaleTransaction> businessSaleTransactions = await _businessRepository.GetBusinessSaleTransactions(request.DateFrom, request.DateTo, appUserId);
+            List<BusinessExpenseTransaction> businessExpenseTransactions = await _businessRepository.GetBusinessExpenseTransactions(request.DateFrom, request.DateTo, appUserId);
+
+            return new()
+            {
+                TotalSaleTransactions = businessSaleTransactions.Sum(x => x.Amount),
+                TotalExpenseTransactions = businessExpenseTransactions.Sum(x => x.Amount),
+                TotalSaleTransactionsByCash = businessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
+                TotalSaleTransactionsByCreditCard = businessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+                TotalExpenseTransactionsByCash = businessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
+                TotalExpenseTransactionsByCreditCard = businessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+            };
+        }
     }
 }

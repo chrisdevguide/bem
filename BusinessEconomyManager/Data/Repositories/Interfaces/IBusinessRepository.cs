@@ -18,8 +18,10 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId);
         Task<Business> GetBusiness(Guid appUserId);
         Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId);
+        Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
         Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
+        Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
         Task UpdateBusinessExpenseTransaction(BusinessExpenseTransaction BusinessExpenseTransaction);
         Task UpdateBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction);
     }

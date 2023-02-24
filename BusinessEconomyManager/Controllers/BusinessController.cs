@@ -144,5 +144,17 @@ namespace BusinessEconomyManager.Controllers
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             return Ok(await _businessServices.GetAppUserSuppliers(appUserId));
         }
+
+        [HttpGet]
+        public async Task<ActionResult<GetBusinessStatisticsResponseDto>> GetBusinessStatistics([Required] DateTime dateFrom, [Required] DateTime dateTo)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            GetBusinessStatisticsRequestDto request = new()
+            {
+                DateFrom = dateFrom,
+                DateTo = dateTo
+            };
+            return Ok(await _businessServices.GetBusinessStatistics(request, appUserId));
+        }
     }
 }

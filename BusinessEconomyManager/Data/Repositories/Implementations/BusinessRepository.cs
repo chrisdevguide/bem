@@ -148,5 +148,18 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.Suppliers.Where(x => x.Business.AppUserId == appUserId).ToListAsync();
         }
 
+        public async Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
+        {
+            return await _dataContext.BusinessSaleTransactions
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
+                .ToListAsync();
+        }
+
+        public async Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
+        {
+            return await _dataContext.BusinessExpenseTransactions
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
+                .ToListAsync();
+        }
     }
 }

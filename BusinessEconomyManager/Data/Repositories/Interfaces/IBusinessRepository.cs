@@ -14,6 +14,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task DeleteBusinessExpenseTransaction(Guid businessExpenseTransaction, Guid appUserId);
         Task DeleteBusinessPeriod(Guid businessPeriodId, Guid appUserId);
         Task DeleteBusinessSaleTransaction(Guid businessSaleTransactionId, Guid appUserId);
+        Task DeleteSupplier(Supplier supplier, Guid appUserId);
         Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId);
         Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId);
         Task<Business> GetBusiness(Guid appUserId);
@@ -22,7 +23,11 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
         Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
+        Task<Supplier> GetSupplier(Guid supplierId, Guid appUserId);
+        Task<bool> HasSupplierBusinessExpenseTransactions(Guid supplierId, Guid appUserId);
+        Task<bool> SupplierExists(Guid supplierId, Guid appUserId);
         Task UpdateBusinessExpenseTransaction(BusinessExpenseTransaction BusinessExpenseTransaction);
         Task UpdateBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction);
+        Task UpdateSupplier(Supplier supplier, Guid appUserId);
     }
 }

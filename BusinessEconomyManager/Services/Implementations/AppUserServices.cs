@@ -1,4 +1,5 @@
-﻿using BusinessEconomyManager.Data.Repositories.Interfaces;
+﻿using BusinessEconomyManager.Data.Repositories.Implementations;
+using BusinessEconomyManager.Data.Repositories.Interfaces;
 using BusinessEconomyManager.DTOs;
 using BusinessEconomyManager.Models;
 using BusinessEconomyManager.Models.Exceptions;
@@ -12,32 +13,42 @@ namespace BusinessEconomyManager.Services.Implementations
     {
         private readonly IAppUserRepository _appUserRepository;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IBusinessRepository _businessRepository;
 
-        public AppUserServices(IAppUserRepository appUserRepository, IAuthenticationService authenticationService)
+        public AppUserServices(IAppUserRepository appUserRepository, IAuthenticationService authenticationService, IBusinessRepository businessRepository)
         {
             _appUserRepository = appUserRepository;
             _authenticationService = authenticationService;
+            _businessRepository = businessRepository;
         }
 
-        public async Task<AppUserDto> Register(string emailAddress, string password)
+        public async Task<AppUserDto> Register(RegisterRequestDto request)
         {
-            if (await _appUserRepository.AppUserExists(emailAddress))
+            if (await _appUserRepository.AppUserExists(request.EmailAddress))
                 throw new ApiException("User already exists.");
 
             using HMACSHA512 hmac = new();
 
             AppUser appUser = new()
             {
-                EmailAddress = emailAddress.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password)),
+                EmailAddress = request.EmailAddress.ToLower(),
+                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password)),
                 PasswordSalt = hmac.Key
             };
 
             await _appUserRepository.AddAppUser(appUser);
 
+            Business business = new()
+            {
+                AppUserId = appUser.Id,
+                Name = request.BusinessName
+            };
+
+            await _businessRepository.CreateBusiness(business);
+
             return new()
             {
-                EmailAddress = emailAddress,
+                EmailAddress = request.EmailAddress,
                 Token = _authenticationService.GenerateAuthenticationToken(appUser),
                 AppUserId = appUser.Id
             };

@@ -6,6 +6,6 @@ namespace BusinessEconomyManager.Services.Interfaces
     {
         Task<AppUserDto> GetAppUserDto(string emailAddress);
         Task<AppUserDto> Login(string emailAddress, string password);
-        Task<AppUserDto> Register(string emailAddress, string password);
+        Task<AppUserDto> Register(RegisterRequestDto request);
     }
 }

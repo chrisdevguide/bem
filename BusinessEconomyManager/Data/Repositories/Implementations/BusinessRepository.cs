@@ -143,9 +143,32 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task UpdateSupplier(Supplier supplier, Guid appUserId)
+        {
+            _dataContext.ChangeTracker.Clear();
+            _dataContext.Suppliers.Update(supplier);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteSupplier(Supplier supplier, Guid appUserId)
+        {
+            _dataContext.Suppliers.Remove(supplier);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId)
         {
             return await _dataContext.Suppliers.Where(x => x.Business.AppUserId == appUserId).ToListAsync();
+        }
+
+        public async Task<bool> SupplierExists(Guid supplierId, Guid appUserId)
+        {
+            return await _dataContext.Suppliers.AnyAsync(x => x.Id == supplierId && x.Business.AppUserId == appUserId);
+        }
+
+        public async Task<Supplier> GetSupplier(Guid supplierId, Guid appUserId)
+        {
+            return await _dataContext.Suppliers.SingleOrDefaultAsync(x => x.Id == supplierId && x.Business.AppUserId == appUserId);
         }
 
         public async Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
@@ -160,6 +183,12 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.BusinessExpenseTransactions
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
                 .ToListAsync();
+        }
+
+        public async Task<bool> HasSupplierBusinessExpenseTransactions(Guid supplierId, Guid appUserId)
+        {
+            return await _dataContext.BusinessExpenseTransactions
+                .AnyAsync(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.SupplierId == supplierId);
         }
     }
 }

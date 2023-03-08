@@ -179,14 +179,47 @@ namespace BusinessEconomyManager.Services.Implementations
 
         public async Task CreateSupplier(CreateSupplierRequestDto request, Guid appUserId)
         {
-            if (!await _businessRepository.BusinessExists(request.BusinessId, appUserId)) throw new ApiException()
+            Business business = await _businessRepository.GetBusiness(appUserId);
+            if (business is null) throw new ApiException()
             {
                 ErrorMessage = "Business not found.",
                 StatusCode = StatusCodes.Status404NotFound
             };
 
             Supplier supplier = _mapper.Map<Supplier>(request);
+            supplier.BusinessId = business.Id;
+
             await _businessRepository.CreateSupplier(supplier);
+        }
+
+        public async Task UpdateSupplier(Supplier supplier, Guid appUserId)
+        {
+            if (!await _businessRepository.SupplierExists(supplier.Id, appUserId)) throw new ApiException()
+            {
+                ErrorMessage = "Supplier not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            Supplier supplierToUpdate = await _businessRepository.GetSupplier(supplier.Id, appUserId);
+
+            if (supplierToUpdate.Name != supplier.Name) throw new ApiException("Updating the supplier name is not allowed.");
+
+            await _businessRepository.UpdateSupplier(supplier, appUserId);
+        }
+
+        public async Task DeleteSupplier(Guid supplierId, Guid appUserId)
+        {
+            Supplier supplierToDelete = await _businessRepository.GetSupplier(supplierId, appUserId);
+            if (supplierToDelete is null) throw new ApiException()
+            {
+                ErrorMessage = "Supplier not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            if (await _businessRepository.HasSupplierBusinessExpenseTransactions(supplierId, appUserId))
+                throw new ApiException("Supplier has expense transactions and can't be deleted.");
+
+            await _businessRepository.DeleteSupplier(supplierToDelete, appUserId);
         }
 
         public async Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId)

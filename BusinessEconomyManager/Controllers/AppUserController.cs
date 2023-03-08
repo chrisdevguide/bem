@@ -19,9 +19,9 @@ namespace BusinessEconomyManager.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<AppUserDto>> Register([Required][EmailAddress] string emailAddress, [Required][MinLength(8)] string password)
+        public async Task<ActionResult<AppUserDto>> Register(RegisterRequestDto request)
         {
-            return Ok(await _appUserServices.Register(emailAddress, password));
+            return Ok(await _appUserServices.Register(request));
         }
 
         [HttpPost]

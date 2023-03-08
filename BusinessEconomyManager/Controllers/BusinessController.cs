@@ -138,6 +138,22 @@ namespace BusinessEconomyManager.Controllers
             return Ok();
         }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateSupplier([Required] Supplier supplier)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.UpdateSupplier(supplier, appUserId);
+            return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteSupplier([Required] Guid supplierId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.DeleteSupplier(supplierId, appUserId);
+            return Ok();
+        }
+
         [HttpGet]
         public async Task<ActionResult<List<Supplier>>> GetAppUserSuppliers()
         {

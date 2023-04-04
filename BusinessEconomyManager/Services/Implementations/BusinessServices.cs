@@ -73,6 +73,7 @@ namespace BusinessEconomyManager.Services.Implementations
 
         public async Task DeleteBusinessPeriod(Guid businessPeriodId, Guid appUserId)
         {
+            if (await _businessRepository.HasBusinessPeriodTransactions(businessPeriodId, appUserId)) throw new ApiException("Business period has business transactions and can't be deleted.");
             await _businessRepository.DeleteBusinessPeriod(businessPeriodId, appUserId);
         }
 
@@ -179,13 +180,11 @@ namespace BusinessEconomyManager.Services.Implementations
 
         public async Task CreateSupplier(CreateSupplierRequestDto request, Guid appUserId)
         {
-            Business business = await _businessRepository.GetBusiness(appUserId);
-            if (business is null) throw new ApiException()
+            Business business = await _businessRepository.GetBusiness(appUserId) ?? throw new ApiException()
             {
                 ErrorMessage = "Business not found.",
                 StatusCode = StatusCodes.Status404NotFound
             };
-
             Supplier supplier = _mapper.Map<Supplier>(request);
             supplier.BusinessId = business.Id;
 
@@ -242,6 +241,52 @@ namespace BusinessEconomyManager.Services.Implementations
                 TotalSaleTransactionsByCreditCard = businessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
                 TotalExpenseTransactionsByCash = businessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
                 TotalExpenseTransactionsByCreditCard = businessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+            };
+        }
+
+        public async Task CreateSupplierCategory(CreateSupplierCategoryRequestDto request, Guid appUserId)
+        {
+            Business business = await GetBusiness(appUserId);
+            if (business is null) throw new ApiException()
+            {
+                ErrorMessage = "Business not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            SupplierCategory supplierCategory = _mapper.Map<SupplierCategory>(request);
+            supplierCategory.BusinessId = business.Id;
+
+            await _businessRepository.CreateSupplierCategory(supplierCategory);
+        }
+
+        public async Task<List<SupplierCategory>> GetSupplierCategories(Guid appUserId)
+        {
+            return await _businessRepository.GetSupplierCategories(appUserId);
+        }
+
+        public async Task UpdateSupplierCategory(SupplierCategory request, Guid appUserId)
+        {
+            await BusinessExists(request.BusinessId, appUserId);
+            await _businessRepository.UpdateSupplierCategory(request);
+        }
+
+        public async Task DeleteSupplierCategory(Guid supplierCategoryId, Guid appUserId)
+        {
+            SupplierCategory supplierCategoryToDelete = await _businessRepository.GetSupplierCategory(supplierCategoryId, appUserId);
+            if (supplierCategoryToDelete is null) throw new ApiException()
+            {
+                ErrorMessage = "Supplier category not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+            await _businessRepository.DeleteSupplierCategory(supplierCategoryToDelete);
+        }
+
+        private async Task BusinessExists(Guid businessId, Guid appUserId)
+        {
+            if (!await _businessRepository.BusinessExists(businessId, appUserId)) throw new ApiException()
+            {
+                ErrorMessage = "Business not found.",
+                StatusCode = StatusCodes.Status404NotFound
             };
         }
     }

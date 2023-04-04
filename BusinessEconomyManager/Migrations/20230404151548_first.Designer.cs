@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessEconomyManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230216152915_1")]
-    partial class _1
+    [Migration("20230404151548_first")]
+    partial class first
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -85,6 +85,9 @@ namespace BusinessEconomyManager.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("SupplierId")
                         .HasColumnType("uniqueidentifier");
@@ -161,6 +164,34 @@ namespace BusinessEconomyManager.Migrations
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SupplierCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("SupplierCategoryId");
+
+                    b.ToTable("Suppliers");
+                });
+
+            modelBuilder.Entity("BusinessEconomyManager.Models.SupplierCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -169,7 +200,7 @@ namespace BusinessEconomyManager.Migrations
 
                     b.HasIndex("BusinessId");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("SupplierCategories");
                 });
 
             modelBuilder.Entity("BusinessEconomyManager.Models.Business", b =>
@@ -228,6 +259,25 @@ namespace BusinessEconomyManager.Migrations
                 {
                     b.HasOne("BusinessEconomyManager.Models.Business", "Business")
                         .WithMany("Suppliers")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BusinessEconomyManager.Models.SupplierCategory", "SupplierCategory")
+                        .WithMany()
+                        .HasForeignKey("SupplierCategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Business");
+
+                    b.Navigation("SupplierCategory");
+                });
+
+            modelBuilder.Entity("BusinessEconomyManager.Models.SupplierCategory", b =>
+                {
+                    b.HasOne("BusinessEconomyManager.Models.Business", "Business")
+                        .WithMany()
                         .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();

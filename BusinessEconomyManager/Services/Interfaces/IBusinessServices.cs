@@ -10,10 +10,12 @@ namespace BusinessEconomyManager.Services.Implementations
         Task CreateBusinessPeriod(CreateBusinessPeriodRequestDto request, Guid appUserId);
         Task CreateBusinessSaleTransaction(CreateBusinessSaleTransactionRequestDto request, Guid appUserId);
         Task CreateSupplier(CreateSupplierRequestDto request, Guid appUserId);
+        Task CreateSupplierCategory(CreateSupplierCategoryRequestDto request, Guid appUserId);
         Task DeleteBusinessExpenseTransaction(Guid businessSaleTransactionId, Guid appUserId);
         Task DeleteBusinessPeriod(Guid businessPeriodId, Guid appUserId);
         Task DeleteBusinessSaleTransaction(Guid businessExpenseTransactionId, Guid appUserId);
         Task DeleteSupplier(Guid supplierId, Guid appUserId);
+        Task DeleteSupplierCategory(Guid supplierCategoryId, Guid appUserId);
         Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId);
         Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId);
         Task<Business> GetBusiness(Guid appUserId);
@@ -22,8 +24,10 @@ namespace BusinessEconomyManager.Services.Implementations
         Task<GetBusinessPeriodDetailsResponseDto> GetBusinessPeriodDetails(Guid businessPeriodId, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
         Task<GetBusinessStatisticsResponseDto> GetBusinessStatistics(GetBusinessStatisticsRequestDto request, Guid appUserId);
+        Task<List<SupplierCategory>> GetSupplierCategories(Guid appUserId);
         Task UpdateBusinessExpenseTransaction(UpdateBusinessExpenseTransactionRequestDto request, Guid appUserId);
         Task UpdateBusinessSaleTransaction(UpdateBusinessSaleTransactionRequestDto request, Guid appUserId);
         Task UpdateSupplier(Supplier supplier, Guid appUserId);
+        Task UpdateSupplierCategory(SupplierCategory request, Guid appUserId);
     }
 }

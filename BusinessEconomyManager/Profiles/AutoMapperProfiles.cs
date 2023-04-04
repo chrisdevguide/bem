@@ -19,6 +19,7 @@ namespace BusinessEconomyManager.Profiles
             CreateMap<UpdateBusinessExpenseTransactionRequestDto, BusinessExpenseTransaction>().ForMember(x => x.Id, opt => opt.MapFrom(x => x.BusinessExpenseTransactionId));
             CreateMap<CreateSupplierRequestDto, Supplier>();
             CreateMap<UpdateSupplierRequestDto, Supplier>();
+            CreateMap<CreateSupplierCategoryRequestDto, SupplierCategory>();
         }
     }
 }

@@ -190,5 +190,39 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.BusinessExpenseTransactions
                 .AnyAsync(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.SupplierId == supplierId);
         }
+
+        public async Task CreateSupplierCategory(SupplierCategory supplierCategory)
+        {
+            _dataContext.SupplierCategories.Add(supplierCategory);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task<SupplierCategory> GetSupplierCategory(Guid supplierCategoryId, Guid appUserId)
+        {
+            return await _dataContext.SupplierCategories.SingleOrDefaultAsync(x => x.Id == supplierCategoryId && x.Business.AppUserId == appUserId);
+        }
+
+        public async Task<List<SupplierCategory>> GetSupplierCategories(Guid appUserId)
+        {
+            return await _dataContext.SupplierCategories.Where(x => x.Business.AppUserId == appUserId).ToListAsync();
+        }
+
+        public async Task UpdateSupplierCategory(SupplierCategory supplierCategory)
+        {
+            _dataContext.SupplierCategories.Update(supplierCategory);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteSupplierCategory(SupplierCategory supplierCategory)
+        {
+            _dataContext.SupplierCategories.Remove(supplierCategory);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task<bool> HasBusinessPeriodTransactions(Guid businessPeriodId, Guid appUserId)
+        {
+            BusinessPeriod businessPeriod = await GetBusinessPeriod(businessPeriodId, appUserId);
+            return businessPeriod.BusinessExpenseTransactions.Any() || businessPeriod.BusinessSaleTransactions.Any();
+        }
     }
 }

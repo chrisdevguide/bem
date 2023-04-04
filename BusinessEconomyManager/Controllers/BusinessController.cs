@@ -172,5 +172,40 @@ namespace BusinessEconomyManager.Controllers
             };
             return Ok(await _businessServices.GetBusinessStatistics(request, appUserId));
         }
+
+        [HttpPost]
+        public async Task<ActionResult> CreateSupplierCategory(CreateSupplierCategoryRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.CreateSupplierCategory(request, appUserId);
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<SupplierCategory>>> GetSupplierCategories()
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            return Ok(await _businessServices.GetSupplierCategories(appUserId));
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> UpdateSupplierCategory(SupplierCategory request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.UpdateSupplierCategory(request, appUserId);
+            return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteSupplierCategory(Guid supplierCategoryId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.DeleteSupplierCategory(supplierCategoryId, appUserId);
+            return Ok();
+        }
     }
 }
+
+//TODO
+// BusinessExpenseTransaction -> Add description
+// Supplier -> Add suppliertype, supplier description

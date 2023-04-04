@@ -17,6 +17,7 @@ namespace BusinessEconomyManager.Data
         public DbSet<BusinessSaleTransaction> BusinessSaleTransactions { get; set; }
         public DbSet<BusinessExpenseTransaction> BusinessExpenseTransactions { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<SupplierCategory> SupplierCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

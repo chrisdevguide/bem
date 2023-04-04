@@ -11,6 +11,7 @@ namespace BusinessEconomyManager.Models
         public double Amount { get; set; }
         [Required]
         public TransactionPaymentType TransactionPaymentType { get; set; }
+        public string Description { get; set; }
         [Required]
         public Guid SupplierId { get; set; }
         public Supplier Supplier { get; set; }

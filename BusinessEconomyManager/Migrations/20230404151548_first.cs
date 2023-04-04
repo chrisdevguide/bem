@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BusinessEconomyManager.Migrations
 {
-    public partial class _1 : Migration
+    public partial class first : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -62,7 +62,7 @@ namespace BusinessEconomyManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Suppliers",
+                name: "SupplierCategories",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -71,9 +71,9 @@ namespace BusinessEconomyManager.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Suppliers", x => x.Id);
+                    table.PrimaryKey("PK_SupplierCategories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Suppliers_Businesses_BusinessId",
+                        name: "FK_SupplierCategories_Businesses_BusinessId",
                         column: x => x.BusinessId,
                         principalTable: "Businesses",
                         principalColumn: "Id");
@@ -100,6 +100,31 @@ namespace BusinessEconomyManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Suppliers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SupplierCategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Suppliers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Suppliers_Businesses_BusinessId",
+                        column: x => x.BusinessId,
+                        principalTable: "Businesses",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Suppliers_SupplierCategories_SupplierCategoryId",
+                        column: x => x.SupplierCategoryId,
+                        principalTable: "SupplierCategories",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BusinessExpenseTransactions",
                 columns: table => new
                 {
@@ -107,6 +132,7 @@ namespace BusinessEconomyManager.Migrations
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Amount = table.Column<double>(type: "float", nullable: false),
                     TransactionPaymentType = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BusinessPeriodId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
@@ -158,9 +184,19 @@ namespace BusinessEconomyManager.Migrations
                 column: "BusinessPeriodId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SupplierCategories_BusinessId",
+                table: "SupplierCategories",
+                column: "BusinessId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Suppliers_BusinessId",
                 table: "Suppliers",
                 column: "BusinessId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Suppliers_SupplierCategoryId",
+                table: "Suppliers",
+                column: "SupplierCategoryId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -176,6 +212,9 @@ namespace BusinessEconomyManager.Migrations
 
             migrationBuilder.DropTable(
                 name: "BusinessPeriods");
+
+            migrationBuilder.DropTable(
+                name: "SupplierCategories");
 
             migrationBuilder.DropTable(
                 name: "Businesses");

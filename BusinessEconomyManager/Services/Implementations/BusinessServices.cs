@@ -4,6 +4,8 @@ using BusinessEconomyManager.Data.Repositories.Interfaces;
 using BusinessEconomyManager.DTOs;
 using BusinessEconomyManager.Models;
 using BusinessEconomyManager.Models.Exceptions;
+using ClosedXML.Excel;
+using System.Collections;
 
 namespace BusinessEconomyManager.Services.Implementations
 {
@@ -79,15 +81,14 @@ namespace BusinessEconomyManager.Services.Implementations
 
         public async Task<GetBusinessPeriodDetailsResponseDto> GetBusinessPeriodDetails(Guid businessPeriodId, Guid appUserId)
         {
-            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(businessPeriodId, appUserId);
-            GetBusinessPeriodDetailsResponseDto response = new()
+            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(businessPeriodId, appUserId) ?? throw new ApiException()
             {
-                BusinessPeriod = businessPeriod,
-                TotalSaleTransactionsByCash = businessPeriod?.BusinessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
-                TotalSaleTransactionsByCreditCard = businessPeriod?.BusinessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
-                TotalExpenseTransactionsByCash = businessPeriod?.BusinessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
-                TotalExpenseTransactionsByCreditCard = businessPeriod?.BusinessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+                ErrorMessage = "Business period not found.",
+                StatusCode = StatusCodes.Status404NotFound
             };
+
+            GetBusinessPeriodDetailsResponseDto response = new(businessPeriod);
+
             return response;
         }
 
@@ -96,18 +97,26 @@ namespace BusinessEconomyManager.Services.Implementations
             return await _businessRepository.GetAppUserBusinessPeriods(appUserId);
         }
 
-        public async Task CreateBusinessSaleTransaction(CreateBusinessSaleTransactionRequestDto request, Guid appUserId)
+        public async Task CreateBusinessSaleDay(CreateBusinessSaleDayRequestDto request, Guid appUserId)
         {
-            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(request.BusinessPeriodId, appUserId);
-            if (businessPeriod == null) throw new ApiException()
+            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(request.BusinessPeriodId, appUserId) ?? throw new ApiException()
             {
                 ErrorMessage = "Business period not found.",
                 StatusCode = StatusCodes.Status404NotFound
             };
 
+            if (businessPeriod.Closed) throw new ApiException("Business period is closed.");
+
             if (!request.IsValid(businessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
 
             BusinessSaleTransaction businessSaleTransaction = _mapper.Map<BusinessSaleTransaction>(request);
+            businessSaleTransaction.Amount = request.CashAmount;
+            businessSaleTransaction.TransactionPaymentType = TransactionPaymentType.Cash;
+            await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
+
+            businessSaleTransaction = _mapper.Map<BusinessSaleTransaction>(request);
+            businessSaleTransaction.Amount = request.CreditCardAmount;
+            businessSaleTransaction.TransactionPaymentType = TransactionPaymentType.CreditCard;
             await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
         }
 
@@ -120,6 +129,8 @@ namespace BusinessEconomyManager.Services.Implementations
                 StatusCode = StatusCodes.Status404NotFound
             };
 
+            if (await _businessRepository.IsBusinessPeriodClosed(businessSaleTransaction.BusinessPeriodId, appUserId)) throw new ApiException("Business period is closed.");
+
             if (!request.IsValid(businessSaleTransaction.BusinessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
 
             BusinessSaleTransaction businessSaleTransactionUpdated = _mapper.Map<BusinessSaleTransaction>(request);
@@ -127,9 +138,17 @@ namespace BusinessEconomyManager.Services.Implementations
             await _businessRepository.UpdateBusinessSaleTransaction(businessSaleTransactionUpdated);
         }
 
-        public async Task DeleteBusinessSaleTransaction(Guid businessExpenseTransactionId, Guid appUserId)
+        public async Task DeleteBusinessSaleTransaction(Guid businessSaleTransactionId, Guid appUserId)
         {
-            await _businessRepository.DeleteBusinessSaleTransaction(businessExpenseTransactionId, appUserId);
+            BusinessSaleTransaction businessSaleTransactionToDelete = await _businessRepository.GetBusinessSaleTransaction(businessSaleTransactionId, appUserId) ?? throw new ApiException()
+            {
+                ErrorMessage = "Transaction not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            if (await _businessRepository.IsBusinessPeriodClosed(businessSaleTransactionToDelete.BusinessPeriodId, appUserId)) throw new ApiException("Business period is closed.");
+
+            await _businessRepository.DeleteBusinessSaleTransaction(businessSaleTransactionToDelete);
         }
 
         public async Task CreateBusinessExpenseTransaction(CreateBusinessExpenseTransactionRequestDto request, Guid appUserId)
@@ -140,6 +159,8 @@ namespace BusinessEconomyManager.Services.Implementations
                 ErrorMessage = "Business period not found.",
                 StatusCode = StatusCodes.Status404NotFound
             };
+
+            if (businessPeriod.Closed) throw new ApiException("Business period is closed.");
 
             if (!request.IsValid(businessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
 
@@ -156,6 +177,8 @@ namespace BusinessEconomyManager.Services.Implementations
                 StatusCode = StatusCodes.Status404NotFound
             };
 
+            if (await _businessRepository.IsBusinessPeriodClosed(businessExpenseTransaction.BusinessPeriodId, appUserId)) throw new ApiException("Business period is closed.");
+
             if (!request.IsValid(businessExpenseTransaction.BusinessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
 
             BusinessExpenseTransaction businessExpenseTransactionToUpdate = _mapper.Map<BusinessExpenseTransaction>(request);
@@ -163,9 +186,17 @@ namespace BusinessEconomyManager.Services.Implementations
             await _businessRepository.UpdateBusinessExpenseTransaction(businessExpenseTransactionToUpdate);
         }
 
-        public async Task DeleteBusinessExpenseTransaction(Guid businessSaleTransactionId, Guid appUserId)
+        public async Task DeleteBusinessExpenseTransaction(Guid businessExpenseTransactionId, Guid appUserId)
         {
-            await _businessRepository.DeleteBusinessExpenseTransaction(businessSaleTransactionId, appUserId);
+            BusinessExpenseTransaction businessExpenseTransactionToDelete = await _businessRepository.GetBusinessExpenseTransaction(businessExpenseTransactionId, appUserId) ?? throw new ApiException()
+            {
+                ErrorMessage = "Transaction not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            if (await _businessRepository.IsBusinessPeriodClosed(businessExpenseTransactionToDelete.BusinessPeriodId, appUserId)) throw new ApiException("Business period is closed.");
+
+            await _businessRepository.DeleteBusinessExpenseTransaction(businessExpenseTransactionToDelete);
         }
 
         public async Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId)
@@ -289,5 +320,138 @@ namespace BusinessEconomyManager.Services.Implementations
                 StatusCode = StatusCodes.Status404NotFound
             };
         }
+
+        public async Task CloseBusinessPeriod(CloseBusinessPeriodRequestDto request, Guid appUserId)
+        {
+            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(request.BusinessPeriodId, appUserId) ?? throw new ApiException()
+            {
+                ErrorMessage = "Business period not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            businessPeriod.Closed = request.Closed;
+            businessPeriod.AccountCashBalance = request.CashBalance;
+            businessPeriod.AccountCreditCardBalance = request.CreditCardBalance;
+            await _businessRepository.UpdateBusinessPeriod(businessPeriod);
+        }
+
+        public async Task CalculateBalanceBusinessPeriod(Guid businessPeriodId, Guid appUserId)
+        {
+            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(businessPeriodId, appUserId) ?? throw new ApiException()
+            {
+                ErrorMessage = "Business period not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            if (await _businessRepository.IsBusinessPeriodClosed(businessPeriodId, appUserId)) throw new ApiException("Business period is closed.");
+
+            BusinessPeriod lastClosedBusinessPeriod = await _businessRepository.GetLastClosedBusinessPeriod(appUserId);
+            businessPeriod.AccountCashBalance = lastClosedBusinessPeriod.AccountCashBalance + DefineBusinessPeriodAccountCashBalance(businessPeriod);
+            businessPeriod.AccountCreditCardBalance = lastClosedBusinessPeriod.AccountCreditCardBalance + DefineBusinessPeriodAccountCreditCardBalance(businessPeriod);
+
+            await _businessRepository.UpdateBusinessPeriod(businessPeriod);
+        }
+
+        private static double DefineBusinessPeriodAccountCashBalance(BusinessPeriod businessPeriod)
+        {
+            return businessPeriod.BusinessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount) -
+                businessPeriod.BusinessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount);
+        }
+        private static double DefineBusinessPeriodAccountCreditCardBalance(BusinessPeriod businessPeriod)
+        {
+            return businessPeriod.BusinessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount) -
+            businessPeriod.BusinessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount);
+        }
+
+        public async Task<GetAccountBalanceResponseDto> GetAccountBalance(Guid appUserId)
+        {
+            BusinessPeriod lastClosedBusinessPeriod = await _businessRepository.GetLastClosedBusinessPeriod(appUserId);
+            DateTime startDate = lastClosedBusinessPeriod is null ? DateTime.Now : lastClosedBusinessPeriod.DateTo;
+            List<BusinessPeriod> lastBusinessPeriods = await _businessRepository.GetBusinessPeriods(startDate, appUserId);
+            return new()
+            {
+                CashBalance = lastClosedBusinessPeriod.AccountCashBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCashBalance(x)),
+                CreditCardBalance = lastClosedBusinessPeriod.AccountCreditCardBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCreditCardBalance(x)),
+            };
+        }
+
+        public async Task<(byte[], string)> DownloadBusinessPeriod(Guid businessPeriodId, Guid appUserId)
+        {
+            BusinessPeriod businessPeriod = await _businessRepository.GetBusinessPeriod(businessPeriodId, appUserId) ?? throw new ApiException()
+            {
+                ErrorMessage = "Business period not found.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            List<string> columnNamesExpensesSheet = new() { "Fecha", "Proveedor", "Importe", "Forma de pago", "Descripción", "", "Total Gastos Efectivo", "Total Gastos Tarjeta", "Total Gastos" };
+
+            using var workbook = new XLWorkbook();
+            workbook.Style.Font.FontSize = 12;
+            workbook.Style.Font.FontName = "Arial";
+            IXLWorksheet worksheetExpenses = workbook.Worksheets.Add($"Gastos {businessPeriod.Name}");
+            IEnumerable dataToAdd = businessPeriod.BusinessExpenseTransactions.Select(x => new
+            {
+                x.Date,
+                x.Supplier.Name,
+                x.Amount,
+                TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
+                x.Description,
+            });
+
+            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetExpenses, columnNamesExpensesSheet, dataToAdd, new() { 3, 7, 8, 9 });
+
+            worksheetExpenses.Cell(2, 7).FormulaA1 = "=SUMIF(D:D, \"Efectivo\", C:C)";
+            worksheetExpenses.Cell(2, 8).FormulaA1 = "=SUMIF(D:D, \"Tarjeta\", C:C)";
+            worksheetExpenses.Cell(2, 9).FormulaA1 = "=G2+H2";
+
+
+            List<string> columnNamesSalesSheet = new() { "Fecha", "Importe", "Forma de pago", "Descripción", "", "Total Ventas Efectivo", "Total Ventas Tarjeta", "Total Ventas" };
+            IXLWorksheet worksheetSales = workbook.Worksheets.Add($"Ventas {businessPeriod.Name}");
+            dataToAdd = businessPeriod.BusinessSaleTransactions.Select(x => new
+            {
+                x.Date,
+                x.Amount,
+                TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
+                x.Description,
+            });
+
+            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetSales, columnNamesSalesSheet, dataToAdd, new() { 2, 6, 7, 8 });
+
+            worksheetSales.Cell(2, 6).FormulaA1 = "=SUMIF(C:C, \"Efectivo\", B:B)";
+            worksheetSales.Cell(2, 7).FormulaA1 = "=SUMIF(C:C, \"Tarjeta\", B:B)";
+            worksheetSales.Cell(2, 8).FormulaA1 = "=F2+G2";
+
+
+            using MemoryStream stream = new();
+            workbook.SaveAs(stream);
+            return (stream.ToArray(), businessPeriod.Name);
+        }
+
+        private static void AddWorksheetDefaultsForBusinessPeriodDownload(IXLWorksheet worksheet, List<string> columnNames, IEnumerable dataToAdd, List<int> columnToFormatToEuro)
+        {
+            IXLRow firstRow = worksheet.FirstRow();
+            firstRow.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#5b95f9"));
+            firstRow.Style.Font.Bold = true;
+            firstRow.Style.Font.FontColor = XLColor.White;
+
+
+            columnNames.ForEach(x =>
+            {
+                IXLCell cellToModify = firstRow.Cell(columnNames.IndexOf(x) + 1);
+                cellToModify.Value = x;
+                IXLColumn columnToModify = cellToModify.WorksheetColumn();
+                columnToModify.Width = 15;
+                columnToModify.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                columnToModify.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                columnToModify.Style.Alignment.WrapText = true;
+            });
+
+            worksheet.Cell(2, 1).InsertData(dataToAdd);
+            columnToFormatToEuro.ForEach(x => worksheet.Column(x).Style.NumberFormat.Format = "€ #,##0.00");
+            worksheet.Rows().Height = 30;
+            firstRow.Height = 35;
+
+        }
+
     }
 }

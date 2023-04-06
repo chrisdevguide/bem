@@ -82,16 +82,9 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
-        public async Task DeleteBusinessSaleTransaction(Guid businessSaleTransactionId, Guid appUserId)
+        public async Task DeleteBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction)
         {
-            BusinessSaleTransaction businessSaleTransactionToDelete = await _dataContext.BusinessSaleTransactions.SingleOrDefaultAsync(x => x.Id == businessSaleTransactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
-            if (businessSaleTransactionToDelete is null) throw new ApiException()
-            {
-                ErrorMessage = "Transaction not found.",
-                StatusCode = StatusCodes.Status404NotFound
-            };
-
-            _dataContext.BusinessSaleTransactions.Remove(businessSaleTransactionToDelete);
+            _dataContext.BusinessSaleTransactions.Remove(businessSaleTransaction);
             await _dataContext.SaveChangesAsync();
         }
 
@@ -107,16 +100,9 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
-        public async Task DeleteBusinessExpenseTransaction(Guid businessExpenseTransaction, Guid appUserId)
+        public async Task DeleteBusinessExpenseTransaction(BusinessExpenseTransaction businessExpenseTransaction)
         {
-            BusinessExpenseTransaction businessExpenseTransactionToDelete = await _dataContext.BusinessExpenseTransactions.SingleOrDefaultAsync(x => x.Id == businessExpenseTransaction && x.BusinessPeriod.Business.AppUserId == appUserId);
-            if (businessExpenseTransactionToDelete is null) throw new ApiException()
-            {
-                ErrorMessage = "Transaction not found.",
-                StatusCode = StatusCodes.Status404NotFound
-            };
-
-            _dataContext.BusinessExpenseTransactions.Remove(businessExpenseTransactionToDelete);
+            _dataContext.BusinessExpenseTransactions.Remove(businessExpenseTransaction);
             await _dataContext.SaveChangesAsync();
         }
 
@@ -223,6 +209,36 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         {
             BusinessPeriod businessPeriod = await GetBusinessPeriod(businessPeriodId, appUserId);
             return businessPeriod.BusinessExpenseTransactions.Any() || businessPeriod.BusinessSaleTransactions.Any();
+        }
+
+        public async Task UpdateBusinessPeriod(BusinessPeriod businessPeriod)
+        {
+            _dataContext.BusinessPeriods.Update(businessPeriod);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsBusinessPeriodClosed(Guid businessPeriodId, Guid appUserId)
+        {
+            return await _dataContext.BusinessPeriods.AnyAsync(x => x.Id == businessPeriodId && x.Business.AppUserId == appUserId && x.Closed);
+        }
+
+        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, Guid appUserId)
+        {
+            return await _dataContext.BusinessPeriods
+                .Include(x => x.BusinessExpenseTransactions)
+                .Include(x => x.BusinessSaleTransactions)
+                .Where(x => x.DateFrom >= startDate && x.Business.AppUserId == appUserId)
+                .ToListAsync();
+        }
+
+        public async Task<BusinessPeriod> GetLastClosedBusinessPeriod(Guid appUserId)
+        {
+            return await _dataContext.BusinessPeriods
+                .Include(x => x.BusinessExpenseTransactions)
+                .Include(x => x.BusinessSaleTransactions)
+                .Where(x => x.Business.AppUserId == appUserId && x.Closed)
+                .OrderByDescending(x => x.DateFrom)
+                .FirstOrDefaultAsync();
         }
     }
 }

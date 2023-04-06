@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessEconomyManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230404151548_first")]
-    partial class first
+    [Migration("20230406180714_3")]
+    partial class _3
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -110,8 +110,17 @@ namespace BusinessEconomyManager.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<double>("AccountCashBalance")
+                        .HasColumnType("float");
+
+                    b.Property<double>("AccountCreditCardBalance")
+                        .HasColumnType("float");
+
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Closed")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("DateFrom")
                         .HasColumnType("datetime2");
@@ -144,6 +153,9 @@ namespace BusinessEconomyManager.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TransactionPaymentType")
                         .HasColumnType("int");

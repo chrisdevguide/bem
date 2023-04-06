@@ -69,10 +69,10 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBusinessSaleTransaction([Required] CreateBusinessSaleTransactionRequestDto request)
+        public async Task<ActionResult> CreateBusinessSaleDay([Required] CreateBusinessSaleDayRequestDto request)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
-            await _businessServices.CreateBusinessSaleTransaction(request, appUserId);
+            await _businessServices.CreateBusinessSaleDay(request, appUserId);
             return Ok();
         }
 
@@ -203,9 +203,38 @@ namespace BusinessEconomyManager.Controllers
             await _businessServices.DeleteSupplierCategory(supplierCategoryId, appUserId);
             return Ok();
         }
+
+        [HttpPut]
+        public async Task<ActionResult> CloseBusinessPeriod(CloseBusinessPeriodRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.CloseBusinessPeriod(request, appUserId);
+            return Ok();
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> CalculateBalanceBusinessPeriod(Guid businessPeriodId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.CalculateBalanceBusinessPeriod(businessPeriodId, appUserId);
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<GetAccountBalanceResponseDto>>> GetAccountBalance()
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            return Ok(await _businessServices.GetAccountBalance(appUserId));
+        }
+
+        [HttpGet]
+        public async Task<FileContentResult> DownloadBusinessPeriod(Guid businessPeriodId)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            var result = await _businessServices.DownloadBusinessPeriod(businessPeriodId, appUserId);
+            return File(result.Item1, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.Item2);
+        }
+
+
     }
 }
-
-//TODO
-// BusinessExpenseTransaction -> Add description
-// Supplier -> Add suppliertype, supplier description

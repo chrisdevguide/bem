@@ -9,6 +9,7 @@ namespace BusinessEconomyManager.DTOs
         public DateTime Date { get; set; }
         [Required]
         public double Amount { get; set; }
+        public string Description { get; set; }
         [Required]
         public TransactionPaymentType TransactionPaymentType { get; set; }
         [Required]

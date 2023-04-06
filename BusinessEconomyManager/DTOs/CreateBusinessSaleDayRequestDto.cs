@@ -3,14 +3,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BusinessEconomyManager.DTOs
 {
-    public class CreateBusinessSaleTransactionRequestDto
+    public class CreateBusinessSaleDayRequestDto
     {
         [Required]
         public DateTime Date { get; set; }
         [Required]
-        public double Amount { get; set; }
+        public double CashAmount { get; set; }
         [Required]
-        public TransactionPaymentType TransactionPaymentType { get; set; }
+        public double CreditCardAmount { get; set; }
+        public string Description { get; set; }
         [Required]
         public Guid BusinessId { get; set; }
         [Required]
@@ -19,11 +20,6 @@ namespace BusinessEconomyManager.DTOs
         public bool IsValid(BusinessPeriod businessPeriod, out string errorMessage)
         {
             errorMessage = string.Empty;
-            if (!Enum.IsDefined(TransactionPaymentType))
-            {
-                errorMessage = "Payment type is not valid.";
-                return false;
-            }
 
             if (Date < businessPeriod.DateFrom)
             {

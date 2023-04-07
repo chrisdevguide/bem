@@ -1,4 +1,5 @@
-﻿using BusinessEconomyManager.Models;
+﻿using BusinessEconomyManager.DTOs;
+using BusinessEconomyManager.Models;
 
 namespace BusinessEconomyManager.Data.Repositories.Implementations
 {
@@ -33,6 +34,8 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<bool> HasBusinessPeriodTransactions(Guid businessPeriodId, Guid appUserId);
         Task<bool> HasSupplierBusinessExpenseTransactions(Guid supplierId, Guid appUserId);
         Task<bool> IsBusinessPeriodClosed(Guid businessPeriodId, Guid appUserId);
+        Task<List<BusinessExpenseTransaction>> SearchBusinessExpenseTransactions(SearchBusinessExpenseTransactionsRequestDto request, Guid appUserId);
+        Task<List<BusinessSaleTransaction>> SearchBusinessSaleTransactions(SearchBusinessSaleTransactionsRequestDto request, Guid appUserId);
         Task<bool> SupplierExists(Guid supplierId, Guid appUserId);
         Task UpdateBusinessExpenseTransaction(BusinessExpenseTransaction BusinessExpenseTransaction);
         Task UpdateBusinessPeriod(BusinessPeriod businessPeriod);

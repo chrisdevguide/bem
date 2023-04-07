@@ -235,6 +235,20 @@ namespace BusinessEconomyManager.Controllers
             return File(result.Item1, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.Item2);
         }
 
+        [HttpPost]
+        public async Task<ActionResult<List<BusinessSaleTransaction>>> SearchBusinessSaleTransactions([FromBody] SearchBusinessSaleTransactionsRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            return Ok(await _businessServices.SearchBusinessSaleTransactions(request, appUserId));
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<List<BusinessExpenseTransaction>>> SearchBusinessExpenseTransactions([FromBody] SearchBusinessExpenseTransactionsRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            return Ok(await _businessServices.SearchBusinessExpenseTransactions(request, appUserId));
+        }
+
 
     }
 }

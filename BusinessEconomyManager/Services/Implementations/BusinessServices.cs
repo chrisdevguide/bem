@@ -370,8 +370,8 @@ namespace BusinessEconomyManager.Services.Implementations
             List<BusinessPeriod> lastBusinessPeriods = await _businessRepository.GetBusinessPeriods(startDate, appUserId);
             return new()
             {
-                CashBalance = lastClosedBusinessPeriod.AccountCashBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCashBalance(x)),
-                CreditCardBalance = lastClosedBusinessPeriod.AccountCreditCardBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCreditCardBalance(x)),
+                CashBalance = lastClosedBusinessPeriod?.AccountCashBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCashBalance(x)),
+                CreditCardBalance = lastClosedBusinessPeriod?.AccountCreditCardBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCreditCardBalance(x)),
             };
         }
 
@@ -451,6 +451,16 @@ namespace BusinessEconomyManager.Services.Implementations
             worksheet.Rows().Height = 30;
             firstRow.Height = 35;
 
+        }
+
+        public async Task<List<BusinessSaleTransaction>> SearchBusinessSaleTransactions(SearchBusinessSaleTransactionsRequestDto request, Guid appUserId)
+        {
+            return await _businessRepository.SearchBusinessSaleTransactions(request, appUserId);
+        }
+
+        public async Task<List<BusinessExpenseTransaction>> SearchBusinessExpenseTransactions(SearchBusinessExpenseTransactionsRequestDto request, Guid appUserId)
+        {
+            return await _businessRepository.SearchBusinessExpenseTransactions(request, appUserId);
         }
 
     }

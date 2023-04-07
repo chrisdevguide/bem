@@ -89,7 +89,7 @@ namespace BusinessEconomyManager.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("SupplierId")
+                    b.Property<Guid>("SuppliersId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("TransactionPaymentType")
@@ -99,7 +99,7 @@ namespace BusinessEconomyManager.Migrations
 
                     b.HasIndex("BusinessPeriodId");
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("SuppliersId");
 
                     b.ToTable("BusinessExpenseTransactions");
                 });
@@ -236,7 +236,7 @@ namespace BusinessEconomyManager.Migrations
 
                     b.HasOne("BusinessEconomyManager.Models.Supplier", "Supplier")
                         .WithMany()
-                        .HasForeignKey("SupplierId")
+                        .HasForeignKey("SuppliersId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 

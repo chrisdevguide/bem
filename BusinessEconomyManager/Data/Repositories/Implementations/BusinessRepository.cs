@@ -1,4 +1,5 @@
-﻿using BusinessEconomyManager.Models;
+﻿using BusinessEconomyManager.DTOs;
+using BusinessEconomyManager.Models;
 using BusinessEconomyManager.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
@@ -240,5 +241,100 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .OrderByDescending(x => x.DateFrom)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<BusinessSaleTransaction>> SearchBusinessSaleTransactions(SearchBusinessSaleTransactionsRequestDto request, Guid appUserId)
+        {
+            var query = _dataContext.BusinessSaleTransactions
+                .Include(x => x.BusinessPeriod)
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId);
+
+            if (request.BusinessPeriodId is not null)
+            {
+                query = query.Where(x => x.BusinessPeriodId == request.BusinessPeriodId);
+            }
+
+            if (request.DateFrom is not null)
+            {
+                query = query.Where(x => x.Date >= request.DateFrom);
+            }
+
+            if (request.DateTo is not null)
+            {
+                query = query.Where(x => x.Date <= request.DateTo);
+            }
+
+            if (request.AmountFrom is not null)
+            {
+                query = query.Where(x => x.Amount >= request.AmountFrom);
+            }
+
+            if (request.AmountTo is not null)
+            {
+                query = query.Where(x => x.Amount <= request.AmountTo);
+            }
+
+            if (request.Description is not null)
+            {
+                query = query.Where(x => x.Description.Contains(request.Description));
+            }
+
+            if (request.TransactionPaymentType is not null)
+            {
+                query = query.Where(x => x.TransactionPaymentType == request.TransactionPaymentType);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<List<BusinessExpenseTransaction>> SearchBusinessExpenseTransactions(SearchBusinessExpenseTransactionsRequestDto request, Guid appUserId)
+        {
+            var query = _dataContext.BusinessExpenseTransactions
+                .Include(x => x.BusinessPeriod)
+                .Include(x => x.Supplier)
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId);
+
+            if (request.BusinessPeriodId is not null)
+            {
+                query = query.Where(x => x.BusinessPeriodId == request.BusinessPeriodId);
+            }
+
+            if (request.DateFrom is not null)
+            {
+                query = query.Where(x => x.Date >= request.DateFrom);
+            }
+
+            if (request.DateTo is not null)
+            {
+                query = query.Where(x => x.Date <= request.DateTo);
+            }
+
+            if (request.AmountFrom is not null)
+            {
+                query = query.Where(x => x.Amount >= request.AmountFrom);
+            }
+
+            if (request.AmountTo is not null)
+            {
+                query = query.Where(x => x.Amount <= request.AmountTo);
+            }
+
+            if (request.Description is not null)
+            {
+                query = query.Where(x => x.Description.Contains(request.Description));
+            }
+
+            if (request.TransactionPaymentType is not null)
+            {
+                query = query.Where(x => x.TransactionPaymentType == request.TransactionPaymentType);
+            }
+
+            if (request.SuppliersId is not null)
+            {
+                query = query.Where(x => request.SuppliersId.Contains(x.SupplierId));
+            }
+
+            return await query.ToListAsync();
+        }
+
     }
 }

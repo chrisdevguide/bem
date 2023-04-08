@@ -63,7 +63,10 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
 
         public async Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId)
         {
-            return await _dataContext.BusinessPeriods.Where(x => x.Business.AppUserId == appUserId).ToListAsync();
+            return await _dataContext.BusinessPeriods
+                .Where(x => x.Business.AppUserId == appUserId)
+                .OrderByDescending(x => x.DateFrom)
+                .ToListAsync();
         }
 
         public async Task<bool> AppUserHasBusiness(Guid appUserId)
@@ -74,6 +77,12 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         public async Task CreateBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction)
         {
             _dataContext.BusinessSaleTransactions.Add(businessSaleTransaction);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task CreateBusinessSaleTransactions(List<BusinessSaleTransaction> businessSaleTransactions)
+        {
+            _dataContext.BusinessSaleTransactions.AddRange(businessSaleTransactions);
             await _dataContext.SaveChangesAsync();
         }
 
@@ -92,6 +101,12 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         public async Task CreateBusinessExpenseTransaction(BusinessExpenseTransaction businessExpenseTransaction)
         {
             _dataContext.BusinessExpenseTransactions.Add(businessExpenseTransaction);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        public async Task CreateBusinessExpenseTransactions(List<BusinessExpenseTransaction> businessExpenseTransactions)
+        {
+            _dataContext.BusinessExpenseTransactions.AddRange(businessExpenseTransactions);
             await _dataContext.SaveChangesAsync();
         }
 
@@ -122,6 +137,13 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .AsNoTracking()
                 .Include(x => x.BusinessPeriod)
                 .SingleOrDefaultAsync(x => x.Id == transactionId && x.BusinessPeriod.Business.AppUserId == appUserId);
+        }
+
+        public async Task<List<Supplier>> GetSupplierByNames(List<string> names, Guid appUserId)
+        {
+            return await _dataContext.Suppliers
+                .Where(x => x.Business.AppUserId == appUserId && names.Any(y => y == x.Name))
+                .ToListAsync();
         }
 
         public async Task CreateSupplier(Supplier supplier)

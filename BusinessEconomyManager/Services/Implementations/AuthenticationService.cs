@@ -29,7 +29,7 @@ namespace BusinessEconomyManager.Services.Implementations
             SecurityTokenDescriptor securityTokenDescriptor = new()
             {
                 Subject = new(claims),
-                Expires = DateTime.UtcNow.AddYears(1),
+                Expires = DateTime.UtcNow.AddDays(1),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],
                 SigningCredentials = new(_securityKey, SecurityAlgorithms.HmacSha512Signature)

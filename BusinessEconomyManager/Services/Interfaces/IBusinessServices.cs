@@ -10,6 +10,7 @@ namespace BusinessEconomyManager.Services.Implementations
         Task CreateBusiness(CreateBusinessRequestDto request, Guid appUserId);
         Task CreateBusinessExpenseTransaction(CreateBusinessExpenseTransactionRequestDto request, Guid appUserId);
         Task CreateBusinessPeriod(CreateBusinessPeriodRequestDto request, Guid appUserId);
+        Task CreateBusinessPeriodFromExcel(CreateBusinessPeriodFromExcelRequestDto request, Guid appUserId);
         Task CreateBusinessSaleDay(CreateBusinessSaleDayRequestDto request, Guid appUserId);
         Task CreateSupplier(CreateSupplierRequestDto request, Guid appUserId);
         Task CreateSupplierCategory(CreateSupplierCategoryRequestDto request, Guid appUserId);

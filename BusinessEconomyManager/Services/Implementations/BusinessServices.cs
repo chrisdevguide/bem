@@ -14,6 +14,9 @@ namespace BusinessEconomyManager.Services.Implementations
         private readonly IBusinessRepository _businessRepository;
         private readonly IAppUserRepository _appUserRepository;
         private readonly IMapper _mapper;
+        private readonly List<string> _columnNamesExpensesSheet = new() { "Fecha", "Proveedor", "Importe", "Forma de pago", "Descripción", "", "Total Gastos Efectivo", "Total Gastos Tarjeta", "Total Gastos" };
+        private readonly List<string> _columnNamesSalesSheet = new() { "Fecha", "Importe", "Forma de pago", "Descripción", "", "Total Ventas Efectivo", "Total Ventas Tarjeta", "Total Ventas" };
+
 
         public BusinessServices(IBusinessRepository businessRepository, IAppUserRepository appUserRepository, IMapper mapper)
         {
@@ -66,6 +69,105 @@ namespace BusinessEconomyManager.Services.Implementations
             BusinessPeriod businessPeriod = _mapper.Map<BusinessPeriod>(request);
             businessPeriod.BusinessId = business.Id;
             await _businessRepository.CreateBusinessPeriod(businessPeriod);
+        }
+
+        public async Task CreateBusinessPeriodFromExcel(CreateBusinessPeriodFromExcelRequestDto request, Guid appUserId)
+        {
+            Business business = await _businessRepository.GetBusiness(appUserId) ?? throw new ApiException()
+            {
+                ErrorMessage = "The user doesn't have a business.",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+
+            using XLWorkbook workbook = new(request.ExcelFile.OpenReadStream());
+
+            IXLWorksheet expensesWorksheet = workbook.Worksheet(1);
+            if (!_columnNamesExpensesSheet.Take(5).ToList().TrueForAll(x => expensesWorksheet.FirstRow().Cell(_columnNamesExpensesSheet.IndexOf(x) + 1).Value.GetText() == x))
+                throw new ApiException("Excel file must have the correct column names.");
+
+            List<BusinessExpenseTransaction> businessExpenseTransactions = new();
+
+            foreach (var row in expensesWorksheet.RowsUsed().Skip(1))
+            {
+                try
+                {
+                    BusinessExpenseTransaction businessExpenseTransaction = new()
+                    {
+                        Date = row.Cell(1).GetDateTime(),
+                        Supplier = new()
+                        {
+                            Name = row.Cell(2).GetText()
+                        },
+                        Amount = row.Cell(3).GetDouble(),
+                        TransactionPaymentType = row.Cell(4).GetText() == "Efectivo" ? TransactionPaymentType.Cash : TransactionPaymentType.CreditCard,
+                        Description = row.Cell(5).Value.ToString()
+                    };
+                    businessExpenseTransactions.Add(businessExpenseTransaction);
+                }
+                catch (Exception e)
+                {
+                    throw new ApiException($"The import process has failed on line {row.RowNumber()} of the expenses worksheet. Error: '{e.Message}'");
+                }
+
+            }
+
+
+            IXLWorksheet salesWorksheet = workbook.Worksheet(2);
+            if (!_columnNamesSalesSheet.Take(4).ToList().TrueForAll(x => salesWorksheet.FirstRow().Cell(_columnNamesSalesSheet.IndexOf(x) + 1).Value.GetText() == x))
+                throw new ApiException("Excel file must have the correct column names.");
+
+            List<BusinessSaleTransaction> businessSaleTransactions = new();
+
+            foreach (var row in salesWorksheet.RowsUsed().Skip(1))
+            {
+                try
+                {
+                    BusinessSaleTransaction businessSaleTransaction = new()
+                    {
+                        Date = row.Cell(1).GetDateTime(),
+                        Amount = row.Cell(2).GetDouble(),
+                        TransactionPaymentType = row.Cell(3).GetText() == "Efectivo" ? TransactionPaymentType.Cash : TransactionPaymentType.CreditCard,
+                        Description = row.Cell(4).Value.ToString()
+                    };
+
+                    businessSaleTransactions.Add(businessSaleTransaction);
+                }
+                catch (Exception e)
+                {
+                    throw new ApiException($"The import process has failed on line {row.RowNumber()} of the sales worksheet. Error: '{e.Message}'");
+                }
+            }
+
+            var dates = businessExpenseTransactions.Select(x => x.Date).Concat(businessSaleTransactions.Select(x => x.Date).ToList());
+
+            BusinessPeriod businessPeriod = new()
+            {
+
+                Name = request.Name,
+                BusinessId = business.Id,
+                DateFrom = dates.Min(),
+                DateTo = dates.Max(),
+            };
+
+            List<Supplier> suppliers = await _businessRepository.GetSupplierByNames(businessExpenseTransactions.Select(x => x.Supplier.Name).ToList(), appUserId);
+
+            if (suppliers.Count < 1) throw new ApiException("No given supplier has been found.");
+
+            businessExpenseTransactions.ForEach(x =>
+            {
+                x.BusinessPeriodId = businessPeriod.Id;
+
+                Supplier transactionSupplier = suppliers.FirstOrDefault(y => x.Supplier.Name == y.Name)
+                ?? throw new ApiException($"Supplier with name '{x.Supplier.Name}' was not found. The import process has failed.");
+
+                x.SupplierId = transactionSupplier.Id;
+                x.Supplier = null;
+            });
+            businessSaleTransactions.ForEach(x => x.BusinessPeriodId = businessPeriod.Id);
+
+            await _businessRepository.CreateBusinessPeriod(businessPeriod);
+            await _businessRepository.CreateBusinessExpenseTransactions(businessExpenseTransactions);
+            await _businessRepository.CreateBusinessSaleTransactions(businessSaleTransactions);
         }
 
         public async Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId)
@@ -366,12 +468,12 @@ namespace BusinessEconomyManager.Services.Implementations
         public async Task<GetAccountBalanceResponseDto> GetAccountBalance(Guid appUserId)
         {
             BusinessPeriod lastClosedBusinessPeriod = await _businessRepository.GetLastClosedBusinessPeriod(appUserId);
-            DateTime startDate = lastClosedBusinessPeriod is null ? DateTime.Now : lastClosedBusinessPeriod.DateTo;
+            DateTime startDate = lastClosedBusinessPeriod is null ? DateTime.MinValue : lastClosedBusinessPeriod.DateTo;
             List<BusinessPeriod> lastBusinessPeriods = await _businessRepository.GetBusinessPeriods(startDate, appUserId);
             return new()
             {
-                CashBalance = lastClosedBusinessPeriod?.AccountCashBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCashBalance(x)),
-                CreditCardBalance = lastClosedBusinessPeriod?.AccountCreditCardBalance + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCreditCardBalance(x)),
+                CashBalance = ((lastClosedBusinessPeriod is null) ? 0 : lastClosedBusinessPeriod.AccountCashBalance) + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCashBalance(x)),
+                CreditCardBalance = ((lastClosedBusinessPeriod is null) ? 0 : lastClosedBusinessPeriod.AccountCreditCardBalance) + lastBusinessPeriods.Sum(x => DefineBusinessPeriodAccountCreditCardBalance(x)),
             };
         }
 
@@ -383,39 +485,41 @@ namespace BusinessEconomyManager.Services.Implementations
                 StatusCode = StatusCodes.Status404NotFound
             };
 
-            List<string> columnNamesExpensesSheet = new() { "Fecha", "Proveedor", "Importe", "Forma de pago", "Descripción", "", "Total Gastos Efectivo", "Total Gastos Tarjeta", "Total Gastos" };
 
             using var workbook = new XLWorkbook();
             workbook.Style.Font.FontSize = 12;
             workbook.Style.Font.FontName = "Arial";
             IXLWorksheet worksheetExpenses = workbook.Worksheets.Add($"Gastos {businessPeriod.Name}");
-            IEnumerable dataToAdd = businessPeriod.BusinessExpenseTransactions.Select(x => new
-            {
-                x.Date,
-                x.Supplier.Name,
-                x.Amount,
-                TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
-                x.Description,
-            });
+            IEnumerable dataToAdd = businessPeriod.BusinessExpenseTransactions
+                .Select(x => new
+                {
+                    x.Date,
+                    x.Supplier.Name,
+                    x.Amount,
+                    TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
+                    x.Description,
+                })
+                .OrderBy(x => x.Date);
 
-            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetExpenses, columnNamesExpensesSheet, dataToAdd, new() { 3, 7, 8, 9 });
+            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetExpenses, _columnNamesExpensesSheet, dataToAdd, new() { 3, 7, 8, 9 });
 
             worksheetExpenses.Cell(2, 7).FormulaA1 = "=SUMIF(D:D, \"Efectivo\", C:C)";
             worksheetExpenses.Cell(2, 8).FormulaA1 = "=SUMIF(D:D, \"Tarjeta\", C:C)";
             worksheetExpenses.Cell(2, 9).FormulaA1 = "=G2+H2";
 
 
-            List<string> columnNamesSalesSheet = new() { "Fecha", "Importe", "Forma de pago", "Descripción", "", "Total Ventas Efectivo", "Total Ventas Tarjeta", "Total Ventas" };
             IXLWorksheet worksheetSales = workbook.Worksheets.Add($"Ventas {businessPeriod.Name}");
-            dataToAdd = businessPeriod.BusinessSaleTransactions.Select(x => new
-            {
-                x.Date,
-                x.Amount,
-                TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
-                x.Description,
-            });
+            dataToAdd = businessPeriod.BusinessSaleTransactions
+                .Select(x => new
+                {
+                    x.Date,
+                    x.Amount,
+                    TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
+                    x.Description,
+                })
+                .OrderBy(x => x.Date);
 
-            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetSales, columnNamesSalesSheet, dataToAdd, new() { 2, 6, 7, 8 });
+            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetSales, _columnNamesSalesSheet, dataToAdd, new() { 2, 6, 7, 8 });
 
             worksheetSales.Cell(2, 6).FormulaA1 = "=SUMIF(C:C, \"Efectivo\", B:B)";
             worksheetSales.Cell(2, 7).FormulaA1 = "=SUMIF(C:C, \"Tarjeta\", B:B)";

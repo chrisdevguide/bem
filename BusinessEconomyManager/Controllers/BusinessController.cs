@@ -39,6 +39,14 @@ namespace BusinessEconomyManager.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<ActionResult> CreateBusinessPeriodFromExcel([FromForm] CreateBusinessPeriodFromExcelRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _businessServices.CreateBusinessPeriodFromExcel(request, appUserId);
+            return Ok();
+        }
+
         [HttpGet]
         public async Task<ActionResult<BusinessPeriod>> GetBusinessPeriod([Required] Guid businessPeriodId)
         {

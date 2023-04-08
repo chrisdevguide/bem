@@ -9,8 +9,10 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<bool> BusinessExists(Guid businessId, Guid appUserId);
         Task CreateBusiness(Business business);
         Task CreateBusinessExpenseTransaction(BusinessExpenseTransaction businessExpenseTransaction);
+        Task CreateBusinessExpenseTransactions(List<BusinessExpenseTransaction> businessExpenseTransactions);
         Task CreateBusinessPeriod(BusinessPeriod businessPeriod);
         Task CreateBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction);
+        Task CreateBusinessSaleTransactions(List<BusinessSaleTransaction> businessSaleTransactions);
         Task CreateSupplier(Supplier supplier);
         Task CreateSupplierCategory(SupplierCategory supplierCategory);
         Task DeleteBusinessExpenseTransaction(BusinessExpenseTransaction businessExpenseTransaction);
@@ -29,6 +31,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
         Task<BusinessPeriod> GetLastClosedBusinessPeriod(Guid appUserId);
         Task<Supplier> GetSupplier(Guid supplierId, Guid appUserId);
+        Task<List<Supplier>> GetSupplierByNames(List<string> names, Guid appUserId);
         Task<List<SupplierCategory>> GetSupplierCategories(Guid appUserId);
         Task<SupplierCategory> GetSupplierCategory(Guid supplierCategoryId, Guid appUserId);
         Task<bool> HasBusinessPeriodTransactions(Guid businessPeriodId, Guid appUserId);

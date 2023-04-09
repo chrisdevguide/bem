@@ -25,6 +25,12 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.Businesses.Where(x => x.AppUserId == appUserId).SingleOrDefaultAsync();
         }
 
+        public async Task UpdateBusiness(Business business)
+        {
+            _dataContext.Businesses.Update(business);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task<bool> BusinessExists(Guid businessId, Guid appUserId)
         {
             return await _dataContext.Businesses.AnyAsync(x => x.Id == businessId && x.AppUserId == appUserId);
@@ -64,6 +70,8 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         public async Task<List<BusinessPeriod>> GetAppUserBusinessPeriods(Guid appUserId)
         {
             return await _dataContext.BusinessPeriods
+                .Include(x => x.BusinessSaleTransactions)
+                .Include(x => x.BusinessExpenseTransactions)
                 .Where(x => x.Business.AppUserId == appUserId)
                 .OrderByDescending(x => x.DateFrom)
                 .ToListAsync();
@@ -154,7 +162,6 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
 
         public async Task UpdateSupplier(Supplier supplier, Guid appUserId)
         {
-            _dataContext.ChangeTracker.Clear();
             _dataContext.Suppliers.Update(supplier);
             await _dataContext.SaveChangesAsync();
         }
@@ -167,12 +174,21 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
 
         public async Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId)
         {
-            return await _dataContext.Suppliers.Where(x => x.Business.AppUserId == appUserId).ToListAsync();
+            return await _dataContext.Suppliers
+                .Where(x => x.Business.AppUserId == appUserId)
+                .Include(x => x.SupplierCategory)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
         }
 
         public async Task<bool> SupplierExists(Guid supplierId, Guid appUserId)
         {
             return await _dataContext.Suppliers.AnyAsync(x => x.Id == supplierId && x.Business.AppUserId == appUserId);
+        }
+
+        public async Task<bool> SupplierExists(string name, Guid appUserId)
+        {
+            return await _dataContext.Suppliers.AnyAsync(x => x.Name == name && x.Business.AppUserId == appUserId);
         }
 
         public async Task<Supplier> GetSupplier(Guid supplierId, Guid appUserId)
@@ -211,9 +227,18 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.SupplierCategories.SingleOrDefaultAsync(x => x.Id == supplierCategoryId && x.Business.AppUserId == appUserId);
         }
 
+        public async Task<bool> HasSupplierCategorySuppliers(Guid supplierCategoryId, Guid appUserId)
+        {
+            return await _dataContext.Suppliers
+                .AnyAsync(x => x.Business.AppUserId == appUserId && x.SupplierCategoryId == supplierCategoryId);
+        }
+
         public async Task<List<SupplierCategory>> GetSupplierCategories(Guid appUserId)
         {
-            return await _dataContext.SupplierCategories.Where(x => x.Business.AppUserId == appUserId).ToListAsync();
+            return await _dataContext.SupplierCategories
+                .Where(x => x.Business.AppUserId == appUserId)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
         }
 
         public async Task UpdateSupplierCategory(SupplierCategory supplierCategory)
@@ -313,6 +338,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             var query = _dataContext.BusinessExpenseTransactions
                 .Include(x => x.BusinessPeriod)
                 .Include(x => x.Supplier)
+                .Include(x => x.Supplier.SupplierCategory)
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId);
 
             if (request.BusinessPeriodId is not null)
@@ -355,7 +381,56 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 query = query.Where(x => request.SuppliersId.Contains(x.SupplierId));
             }
 
+            if (request.SupplierCategoriesId is not null)
+            {
+                query = query.Where(x => request.SupplierCategoriesId.Contains(x.Supplier.SupplierCategoryId));
+            }
+
             return await query.ToListAsync();
+        }
+
+        public async Task<List<SupplierReport>> GetSupplierReports(GetBusinessStatisticsRequestDto request, Guid appUserId)
+        {
+            return await _dataContext.BusinessExpenseTransactions
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= request.DateFrom && x.Date <= request.DateTo)
+                .Include(x => x.Supplier)
+                .GroupBy(x => x.SupplierId)
+                .Select(x => new SupplierReport()
+                {
+                    Supplier = x.FirstOrDefault().Supplier,
+                    BusinessExpensesAmount = x.Sum(x => x.Amount),
+                })
+                .OrderByDescending(x => x.BusinessExpensesAmount)
+                .ToListAsync();
+        }
+
+        public async Task<List<SupplierCategoryReport>> GetSupplierCategoryReports(GetBusinessStatisticsRequestDto request, Guid appUserId)
+        {
+            return await _dataContext.BusinessExpenseTransactions
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= request.DateFrom && x.Date <= request.DateTo)
+                .Include(x => x.Supplier.SupplierCategory)
+                .GroupBy(x => x.Supplier.SupplierCategoryId)
+                .Select(x => new SupplierCategoryReport()
+                {
+                    SupplierCategory = x.FirstOrDefault().Supplier.SupplierCategory,
+                    CategoryExpensesAmount = x.Sum(x => x.Amount),
+                })
+                .OrderByDescending(x => x.CategoryExpensesAmount)
+                .ToListAsync();
+        }
+
+        public async Task<List<BusinessSaleDayReport>> GetBusinessSaleDayReports(GetBusinessStatisticsRequestDto request, Guid appUserId)
+        {
+            return await _dataContext.BusinessSaleTransactions
+                .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= request.DateFrom && x.Date <= request.DateTo)
+                .GroupBy(x => x.Date.Date)
+                .Select(x => new BusinessSaleDayReport()
+                {
+                    Date = x.FirstOrDefault().Date,
+                    BusinessSalesAmount = x.Sum(x => x.Amount),
+                })
+                .OrderByDescending(x => x.BusinessSalesAmount)
+                .ToListAsync();
         }
 
     }

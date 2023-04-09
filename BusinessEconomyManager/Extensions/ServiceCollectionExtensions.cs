@@ -1,6 +1,5 @@
 ﻿using BusinessEconomyManager.Data;
 using BusinessEconomyManager.Data.Repositories.Implementations;
-using BusinessEconomyManager.Data.Repositories.Interfaces;
 using BusinessEconomyManager.Services.Implementations;
 using BusinessEconomyManager.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

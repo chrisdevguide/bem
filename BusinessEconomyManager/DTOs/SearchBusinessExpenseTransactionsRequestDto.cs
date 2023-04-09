@@ -10,5 +10,6 @@
         public string Description { get; set; }
         public TransactionPaymentType? TransactionPaymentType { get; set; }
         public List<Guid> SuppliersId { get; set; }
+        public List<Guid> SupplierCategoriesId { get; set; }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using BusinessEconomyManager.Data.Repositories.Implementations;
-using BusinessEconomyManager.Data.Repositories.Interfaces;
 using BusinessEconomyManager.DTOs;
 using BusinessEconomyManager.Models;
 using BusinessEconomyManager.Models.Exceptions;
@@ -332,9 +331,7 @@ namespace BusinessEconomyManager.Services.Implementations
                 StatusCode = StatusCodes.Status404NotFound
             };
 
-            Supplier supplierToUpdate = await _businessRepository.GetSupplier(supplier.Id, appUserId);
-
-            if (supplierToUpdate.Name != supplier.Name) throw new ApiException("Updating the supplier name is not allowed.");
+            if (!await _businessRepository.SupplierExists(supplier.Name, appUserId)) throw new ApiException("Updating the supplier name is not allowed.");
 
             await _businessRepository.UpdateSupplier(supplier, appUserId);
         }
@@ -365,6 +362,7 @@ namespace BusinessEconomyManager.Services.Implementations
 
             List<BusinessSaleTransaction> businessSaleTransactions = await _businessRepository.GetBusinessSaleTransactions(request.DateFrom, request.DateTo, appUserId);
             List<BusinessExpenseTransaction> businessExpenseTransactions = await _businessRepository.GetBusinessExpenseTransactions(request.DateFrom, request.DateTo, appUserId);
+            List<BusinessPeriod> businessPeriods = await _businessRepository.GetAppUserBusinessPeriods(appUserId);
 
             return new()
             {
@@ -374,6 +372,16 @@ namespace BusinessEconomyManager.Services.Implementations
                 TotalSaleTransactionsByCreditCard = businessSaleTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
                 TotalExpenseTransactionsByCash = businessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.Cash).Sum(x => x.Amount),
                 TotalExpenseTransactionsByCreditCard = businessExpenseTransactions.Where(x => x.TransactionPaymentType == TransactionPaymentType.CreditCard).Sum(x => x.Amount),
+                SupplierReports = await _businessRepository.GetSupplierReports(request, appUserId),
+                SupplierCategoryReports = await _businessRepository.GetSupplierCategoryReports(request, appUserId),
+                BusinessSaleDayReports = await _businessRepository.GetBusinessSaleDayReports(request, appUserId),
+                BusinessPeriodReports = businessPeriods.Select(x => new BusinessPeriodReport()
+                {
+                    BusinessPeriod = x,
+                    TotalSales = x.BusinessSaleTransactions.Sum(x => x.Amount),
+                    TotalExpenses = x.BusinessExpenseTransactions.Sum(x => x.Amount),
+                })
+                .ToList(),
             };
         }
 
@@ -405,12 +413,14 @@ namespace BusinessEconomyManager.Services.Implementations
 
         public async Task DeleteSupplierCategory(Guid supplierCategoryId, Guid appUserId)
         {
-            SupplierCategory supplierCategoryToDelete = await _businessRepository.GetSupplierCategory(supplierCategoryId, appUserId);
-            if (supplierCategoryToDelete is null) throw new ApiException()
+            SupplierCategory supplierCategoryToDelete = await _businessRepository.GetSupplierCategory(supplierCategoryId, appUserId) ?? throw new ApiException()
             {
                 ErrorMessage = "Supplier category not found.",
                 StatusCode = StatusCodes.Status404NotFound
             };
+
+            if (await _businessRepository.HasSupplierCategorySuppliers(supplierCategoryId, appUserId)) throw new ApiException("Supplier category has suppliers and can't be deleted.");
+
             await _businessRepository.DeleteSupplierCategory(supplierCategoryToDelete);
         }
 

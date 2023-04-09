@@ -27,6 +27,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
         Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
         Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, Guid appUserId);
+        Task<List<BusinessSaleDayReport>> GetBusinessSaleDayReports(GetBusinessStatisticsRequestDto request, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
         Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
         Task<BusinessPeriod> GetLastClosedBusinessPeriod(Guid appUserId);
@@ -34,12 +35,17 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<List<Supplier>> GetSupplierByNames(List<string> names, Guid appUserId);
         Task<List<SupplierCategory>> GetSupplierCategories(Guid appUserId);
         Task<SupplierCategory> GetSupplierCategory(Guid supplierCategoryId, Guid appUserId);
+        Task<List<SupplierCategoryReport>> GetSupplierCategoryReports(GetBusinessStatisticsRequestDto request, Guid appUserId);
+        Task<List<SupplierReport>> GetSupplierReports(GetBusinessStatisticsRequestDto request, Guid appUserId);
         Task<bool> HasBusinessPeriodTransactions(Guid businessPeriodId, Guid appUserId);
         Task<bool> HasSupplierBusinessExpenseTransactions(Guid supplierId, Guid appUserId);
+        Task<bool> HasSupplierCategorySuppliers(Guid supplierCategoryId, Guid appUserId);
         Task<bool> IsBusinessPeriodClosed(Guid businessPeriodId, Guid appUserId);
         Task<List<BusinessExpenseTransaction>> SearchBusinessExpenseTransactions(SearchBusinessExpenseTransactionsRequestDto request, Guid appUserId);
         Task<List<BusinessSaleTransaction>> SearchBusinessSaleTransactions(SearchBusinessSaleTransactionsRequestDto request, Guid appUserId);
         Task<bool> SupplierExists(Guid supplierId, Guid appUserId);
+        Task<bool> SupplierExists(string name, Guid appUserId);
+        Task UpdateBusiness(Business business);
         Task UpdateBusinessExpenseTransaction(BusinessExpenseTransaction BusinessExpenseTransaction);
         Task UpdateBusinessPeriod(BusinessPeriod businessPeriod);
         Task UpdateBusinessSaleTransaction(BusinessSaleTransaction businessSaleTransaction);

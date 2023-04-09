@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using BusinessEconomyManager.Data.Repositories.Interfaces;
 using BusinessEconomyManager.DTOs;
 using BusinessEconomyManager.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +23,12 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task UpdateAppUser(AppUser appUser)
+        {
+            _dataContext.AppUsers.Update(appUser);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task<bool> AppUserExists(string emailAddress)
         {
             return await _dataContext.AppUsers.AnyAsync(x => x.EmailAddress == emailAddress.ToLower());
@@ -39,6 +44,13 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.AppUsers
                 .Include(x => x.Business)
                 .SingleOrDefaultAsync(x => x.EmailAddress == emailAddress.ToLower());
+        }
+
+        public async Task<AppUser> GetAppUser(Guid appUserId)
+        {
+            return await _dataContext.AppUsers
+                .Include(x => x.Business)
+                .SingleOrDefaultAsync(x => x.Id == appUserId);
         }
 
         public async Task<AppUserDto> GetAppUserDto(string emailAddress)

@@ -1,6 +1,6 @@
 ﻿using BusinessEconomyManager.DTOs;
 using BusinessEconomyManager.Extensions;
-using BusinessEconomyManager.Services.Interfaces;
+using BusinessEconomyManager.Services.Implementations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -36,6 +36,14 @@ namespace BusinessEconomyManager.Controllers
         {
             string emailAddress = User.GetEmailClaim(false);
             return Ok(await _appUserServices.GetAppUserDto(emailAddress));
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> UpdateAppUser(UpdateAppUserRequestDto request)
+        {
+            Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
+            await _appUserServices.UpdateAppUser(request, appUserId);
+            return Ok();
         }
 
     }

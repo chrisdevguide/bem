@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessEconomyManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230406181526_4")]
-    partial class _4
+    [Migration("20230411170715_first")]
+    partial class first
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -89,7 +89,7 @@ namespace BusinessEconomyManager.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("SuppliersId")
+                    b.Property<Guid>("SupplierId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("TransactionPaymentType")
@@ -99,7 +99,7 @@ namespace BusinessEconomyManager.Migrations
 
                     b.HasIndex("BusinessPeriodId");
 
-                    b.HasIndex("SuppliersId");
+                    b.HasIndex("SupplierId");
 
                     b.ToTable("BusinessExpenseTransactions");
                 });
@@ -236,7 +236,7 @@ namespace BusinessEconomyManager.Migrations
 
                     b.HasOne("BusinessEconomyManager.Models.Supplier", "Supplier")
                         .WithMany()
-                        .HasForeignKey("SuppliersId")
+                        .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 

@@ -1,0 +1,33 @@
+version: "3.4"
+
+services:
+    api:
+        build:
+          context: .
+          dockerfile: Dockerfile
+        ports:
+          - "8080:80"
+        depends_on:
+          - db
+        networks:
+          - my-network
+
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        user: root
+        volumes:
+            - sqlserverdata:/var/opt/mssql/data
+        ports:
+          - "5050:1433"
+        networks:
+          - my-network
+
+        environment:
+            SA_PASSWORD: "q2vV7fJzHwUUkSwhj3snkD6cqdemw39n"
+            ACCEPT_EULA: "Y"
+volumes:
+  sqlserverdata:
+  
+networks:
+  my-network:
+    driver: bridge

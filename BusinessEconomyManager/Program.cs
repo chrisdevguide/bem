@@ -18,11 +18,10 @@ namespace BusinessEconomyManager
 
             // Configure the HTTP request pipeline.
             app.UseMiddleware<ApiExceptionMiddleware>();
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
 
             app.UseHttpsRedirection();
 

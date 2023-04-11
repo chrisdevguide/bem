@@ -279,6 +279,15 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, DateTime endDate, Guid appUserId)
+        {
+            return await _dataContext.BusinessPeriods
+                .Include(x => x.BusinessExpenseTransactions)
+                .Include(x => x.BusinessSaleTransactions)
+                .Where(x => x.DateFrom >= startDate && x.DateTo <= endDate && x.Business.AppUserId == appUserId)
+                .ToListAsync();
+        }
+
         public async Task<BusinessPeriod> GetLastClosedBusinessPeriod(Guid appUserId)
         {
             return await _dataContext.BusinessPeriods

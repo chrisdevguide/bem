@@ -26,6 +26,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId);
         Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
         Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
+        Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, DateTime endDate, Guid appUserId);
         Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, Guid appUserId);
         Task<List<BusinessSaleDayReport>> GetBusinessSaleDayReports(GetBusinessStatisticsRequestDto request, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);

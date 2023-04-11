@@ -332,6 +332,7 @@ namespace BusinessEconomyManager.Services.Implementations
             };
 
             if (!await _businessRepository.SupplierExists(supplier.Name, appUserId)) throw new ApiException("Updating the supplier name is not allowed.");
+            supplier.SupplierCategory = null;
 
             await _businessRepository.UpdateSupplier(supplier, appUserId);
         }
@@ -362,7 +363,7 @@ namespace BusinessEconomyManager.Services.Implementations
 
             List<BusinessSaleTransaction> businessSaleTransactions = await _businessRepository.GetBusinessSaleTransactions(request.DateFrom, request.DateTo, appUserId);
             List<BusinessExpenseTransaction> businessExpenseTransactions = await _businessRepository.GetBusinessExpenseTransactions(request.DateFrom, request.DateTo, appUserId);
-            List<BusinessPeriod> businessPeriods = await _businessRepository.GetAppUserBusinessPeriods(appUserId);
+            List<BusinessPeriod> businessPeriods = await _businessRepository.GetBusinessPeriods(request.DateFrom, request.DateTo, appUserId);
 
             return new()
             {

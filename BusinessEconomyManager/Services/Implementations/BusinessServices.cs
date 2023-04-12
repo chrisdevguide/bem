@@ -181,7 +181,7 @@ namespace BusinessEconomyManager.Services.Implementations
                             Name = x.Supplier.SupplierCategory.Name,
                             BusinessId = businessPeriod.BusinessId,
                         };
-
+                        existingSupplierCategories.Add(transactionSupplierCategory);
                         newSupplierCategories.Add(transactionSupplierCategory);
                     }
 
@@ -193,7 +193,7 @@ namespace BusinessEconomyManager.Services.Implementations
                             SupplierCategoryId = transactionSupplierCategory.Id,
                             BusinessId = businessPeriod.BusinessId,
                         };
-
+                        existingSuppliers.Add(transactionSupplier);
                         newSuppliers.Add(transactionSupplier);
                     }
 

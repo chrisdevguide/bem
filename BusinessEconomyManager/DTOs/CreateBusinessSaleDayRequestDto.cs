@@ -6,7 +6,7 @@ namespace BusinessEconomyManager.DTOs
     public class CreateBusinessSaleDayRequestDto
     {
         [Required]
-        public DateTimeOffset Date { get; set; }
+        public DateTime Date { get; set; }
         [Required]
         public double CashAmount { get; set; }
         [Required]

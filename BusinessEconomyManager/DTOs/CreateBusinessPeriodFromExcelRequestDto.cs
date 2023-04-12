@@ -8,5 +8,6 @@ namespace BusinessEconomyManager.DTOs
         public string Name { get; set; }
         [Required]
         public IFormFile ExcelFile { get; set; }
+        public bool CreateMissingSuppliers { get; set; }
     }
 }

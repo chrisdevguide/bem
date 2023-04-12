@@ -13,7 +13,7 @@ namespace BusinessEconomyManager.Services.Implementations
         private readonly IBusinessRepository _businessRepository;
         private readonly IAppUserRepository _appUserRepository;
         private readonly IMapper _mapper;
-        private readonly List<string> _columnNamesExpensesSheet = new() { "Fecha", "Proveedor", "Importe", "Forma de pago", "Descripción", "", "Total Gastos Efectivo", "Total Gastos Tarjeta", "Total Gastos" };
+        private readonly List<string> _columnNamesExpensesSheet = new() { "Fecha", "Proveedor", "Importe", "Forma de pago", "Descripción", "Categoría", "", "Total Gastos Efectivo", "Total Gastos Tarjeta", "Total Gastos" };
         private readonly List<string> _columnNamesSalesSheet = new() { "Fecha", "Importe", "Forma de pago", "Descripción", "", "Total Ventas Efectivo", "Total Ventas Tarjeta", "Total Ventas" };
 
 
@@ -95,11 +95,15 @@ namespace BusinessEconomyManager.Services.Implementations
                         Date = row.Cell(1).GetDateTime(),
                         Supplier = new()
                         {
-                            Name = row.Cell(2).GetText()
+                            Name = row.Cell(2).GetText(),
+                            SupplierCategory = new()
+                            {
+                                Name = row.Cell(6).GetText(),
+                            }
                         },
                         Amount = row.Cell(3).GetDouble(),
                         TransactionPaymentType = row.Cell(4).GetText() == "Efectivo" ? TransactionPaymentType.Cash : TransactionPaymentType.CreditCard,
-                        Description = row.Cell(5).Value.ToString()
+                        Description = row.Cell(5).Value.ToString(),
                     };
                     businessExpenseTransactions.Add(businessExpenseTransaction);
                 }
@@ -133,7 +137,8 @@ namespace BusinessEconomyManager.Services.Implementations
                 }
                 catch (Exception e)
                 {
-                    throw new ApiException($"The import process has failed on line {row.RowNumber()} of the sales worksheet. Error: '{e.Message}'");
+                    if (row.RowNumber() > 2)
+                        throw new ApiException($"The import process has failed on line {row.RowNumber()} of the sales worksheet. Error: '{e.Message}'");
                 }
             }
 
@@ -148,22 +153,60 @@ namespace BusinessEconomyManager.Services.Implementations
                 DateTo = dates.Max(),
             };
 
-            List<Supplier> suppliers = await _businessRepository.GetSupplierByNames(businessExpenseTransactions.Select(x => x.Supplier.Name).ToList(), appUserId);
-
-            if (suppliers.Count < 1) throw new ApiException("No given supplier has been found.");
+            List<Supplier> existingSuppliers = await _businessRepository.GetSupplierByNames(businessExpenseTransactions.Select(x => x.Supplier.Name).ToList(), appUserId);
+            List<SupplierCategory> existingSupplierCategories = await _businessRepository.GetSupplierCategories(businessExpenseTransactions.Select(x => x.Supplier.SupplierCategory.Name).ToList(), appUserId);
+            List<SupplierCategory> newSupplierCategories = new();
+            List<Supplier> newSuppliers = new();
 
             businessExpenseTransactions.ForEach(x =>
             {
                 x.BusinessPeriodId = businessPeriod.Id;
 
-                Supplier transactionSupplier = suppliers.FirstOrDefault(y => x.Supplier.Name == y.Name)
-                ?? throw new ApiException($"Supplier with name '{x.Supplier.Name}' was not found. The import process has failed.");
+                SupplierCategory transactionSupplierCategory = existingSupplierCategories.FirstOrDefault(y => y.Name == x.Supplier.SupplierCategory.Name);
+                Supplier transactionSupplier = existingSuppliers.FirstOrDefault(y => x.Supplier.Name == y.Name);
+
+                if (!request.CreateMissingSuppliers)
+                {
+                    if (transactionSupplier is null)
+                        throw new ApiException($"Supplier with name '{x.Supplier.Name}' was not found. The import process has failed.");
+                    if (transactionSupplierCategory is null)
+                        throw new ApiException($"Category with name '{x.Supplier.SupplierCategory.Name}' was not found. The import process has failed.");
+                }
+                else
+                {
+                    if (transactionSupplierCategory is null)
+                    {
+                        transactionSupplierCategory = new()
+                        {
+                            Name = x.Supplier.SupplierCategory.Name,
+                            BusinessId = businessPeriod.BusinessId,
+                        };
+
+                        newSupplierCategories.Add(transactionSupplierCategory);
+                    }
+
+                    if (transactionSupplier is null)
+                    {
+                        transactionSupplier = new()
+                        {
+                            Name = x.Supplier.Name,
+                            SupplierCategoryId = transactionSupplierCategory.Id,
+                            BusinessId = businessPeriod.BusinessId,
+                        };
+
+                        newSuppliers.Add(transactionSupplier);
+                    }
+
+
+                }
 
                 x.SupplierId = transactionSupplier.Id;
                 x.Supplier = null;
             });
             businessSaleTransactions.ForEach(x => x.BusinessPeriodId = businessPeriod.Id);
 
+            if (newSupplierCategories.Count > 0) await _businessRepository.CreateSupplierCategories(newSupplierCategories);
+            if (newSuppliers.Count > 0) await _businessRepository.CreateSuppliers(newSuppliers);
             await _businessRepository.CreateBusinessPeriod(businessPeriod);
             await _businessRepository.CreateBusinessExpenseTransactions(businessExpenseTransactions);
             await _businessRepository.CreateBusinessSaleTransactions(businessSaleTransactions);
@@ -420,7 +463,7 @@ namespace BusinessEconomyManager.Services.Implementations
                 StatusCode = StatusCodes.Status404NotFound
             };
 
-            if (await _businessRepository.HasSupplierCategorySuppliers(supplierCategoryId, appUserId)) throw new ApiException("Supplier category has suppliers and can't be deleted.");
+            if (await _businessRepository.HasSupplierCategorySuppliers(supplierCategoryId, appUserId)) throw new ApiException("Supplier category has existingSuppliers and can't be deleted.");
 
             await _businessRepository.DeleteSupplierCategory(supplierCategoryToDelete);
         }
@@ -479,7 +522,7 @@ namespace BusinessEconomyManager.Services.Implementations
         public async Task<GetAccountBalanceResponseDto> GetAccountBalance(Guid appUserId)
         {
             BusinessPeriod lastClosedBusinessPeriod = await _businessRepository.GetLastClosedBusinessPeriod(appUserId);
-            DateTimeOffset startDate = lastClosedBusinessPeriod is null ? DateTimeOffset.MinValue : lastClosedBusinessPeriod.DateTo;
+            DateTime startDate = lastClosedBusinessPeriod is null ? DateTime.MinValue : lastClosedBusinessPeriod.DateTo;
             List<BusinessPeriod> lastBusinessPeriods = await _businessRepository.GetBusinessPeriods(startDate, appUserId);
             return new()
             {
@@ -509,14 +552,15 @@ namespace BusinessEconomyManager.Services.Implementations
                     x.Amount,
                     TransactionPaymentType = (x.TransactionPaymentType == TransactionPaymentType.Cash) ? "Efectivo" : "Tarjeta",
                     x.Description,
+                    Category = x.Supplier.SupplierCategory.Name
                 })
                 .OrderBy(x => x.Date);
 
-            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetExpenses, _columnNamesExpensesSheet, dataToAdd, new() { 3, 7, 8, 9 });
+            AddWorksheetDefaultsForBusinessPeriodDownload(worksheetExpenses, _columnNamesExpensesSheet, dataToAdd, new() { 3, 8, 9, 10 });
 
-            worksheetExpenses.Cell(2, 7).FormulaA1 = "=SUMIF(D:D, \"Efectivo\", C:C)";
-            worksheetExpenses.Cell(2, 8).FormulaA1 = "=SUMIF(D:D, \"Tarjeta\", C:C)";
-            worksheetExpenses.Cell(2, 9).FormulaA1 = "=G2+H2";
+            worksheetExpenses.Cell(2, 8).FormulaA1 = "=SUMIF(D:D, \"Efectivo\", C:C)";
+            worksheetExpenses.Cell(2, 9).FormulaA1 = "=SUMIF(D:D, \"Tarjeta\", C:C)";
+            worksheetExpenses.Cell(2, 10).FormulaA1 = "=G2+H2";
 
 
             IXLWorksheet worksheetSales = workbook.Worksheets.Add($"Ventas {businessPeriod.Name}");

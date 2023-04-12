@@ -2,7 +2,7 @@
 {
     public class BusinessSaleDayReport
     {
-        public DateTimeOffset Date { get; set; }
+        public DateTime Date { get; set; }
         public double BusinessSalesAmount { get; set; }
     }
 }

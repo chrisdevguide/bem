@@ -2,8 +2,8 @@
 {
     public class GetBusinessStatisticsRequestDto
     {
-        public DateTimeOffset DateFrom { get; set; }
-        public DateTimeOffset DateTo { get; set; }
+        public DateTime DateFrom { get; set; }
+        public DateTime DateTo { get; set; }
 
         public bool IsValid(out string errorMessage)
         {

@@ -49,6 +49,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .Include(x => x.BusinessSaleTransactions)
                 .Include(x => x.BusinessExpenseTransactions)
                 .ThenInclude(x => x.Supplier)
+                .ThenInclude(x => x.SupplierCategory)
                 .SingleOrDefaultAsync(x => x.Id == businessPeriodId && x.Business.AppUserId == appUserId);
         }
 
@@ -160,6 +161,12 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task CreateSuppliers(List<Supplier> suppliers)
+        {
+            _dataContext.Suppliers.AddRange(suppliers);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task UpdateSupplier(Supplier supplier, Guid appUserId)
         {
             _dataContext.Suppliers.Update(supplier);
@@ -196,14 +203,14 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.Suppliers.SingleOrDefaultAsync(x => x.Id == supplierId && x.Business.AppUserId == appUserId);
         }
 
-        public async Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTimeOffset dateFrom, DateTimeOffset dateTo, Guid appUserId)
+        public async Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
         {
             return await _dataContext.BusinessSaleTransactions
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
                 .ToListAsync();
         }
 
-        public async Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTimeOffset dateFrom, DateTimeOffset dateTo, Guid appUserId)
+        public async Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
         {
             return await _dataContext.BusinessExpenseTransactions
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
@@ -222,9 +229,20 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task CreateSupplierCategories(List<SupplierCategory> supplierCategories)
+        {
+            _dataContext.SupplierCategories.AddRange(supplierCategories);
+            await _dataContext.SaveChangesAsync();
+        }
+
         public async Task<SupplierCategory> GetSupplierCategory(Guid supplierCategoryId, Guid appUserId)
         {
             return await _dataContext.SupplierCategories.SingleOrDefaultAsync(x => x.Id == supplierCategoryId && x.Business.AppUserId == appUserId);
+        }
+
+        public async Task<SupplierCategory> GetSupplierCategory(string name, Guid appUserId)
+        {
+            return await _dataContext.SupplierCategories.SingleOrDefaultAsync(x => x.Name == name && x.Business.AppUserId == appUserId);
         }
 
         public async Task<bool> HasSupplierCategorySuppliers(Guid supplierCategoryId, Guid appUserId)
@@ -237,6 +255,14 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         {
             return await _dataContext.SupplierCategories
                 .Where(x => x.Business.AppUserId == appUserId)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<SupplierCategory>> GetSupplierCategories(List<string> names, Guid appUserId)
+        {
+            return await _dataContext.SupplierCategories
+                .Where(x => x.Business.AppUserId == appUserId && names.Contains(x.Name))
                 .OrderBy(x => x.Name)
                 .ToListAsync();
         }
@@ -270,7 +296,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.BusinessPeriods.AnyAsync(x => x.Id == businessPeriodId && x.Business.AppUserId == appUserId && x.Closed);
         }
 
-        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTimeOffset startDate, Guid appUserId)
+        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, Guid appUserId)
         {
             return await _dataContext.BusinessPeriods
                 .Include(x => x.BusinessExpenseTransactions)
@@ -279,7 +305,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTimeOffset startDate, DateTimeOffset endDate, Guid appUserId)
+        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, DateTime endDate, Guid appUserId)
         {
             return await _dataContext.BusinessPeriods
                 .Include(x => x.BusinessExpenseTransactions)

@@ -7,9 +7,9 @@ namespace BusinessEconomyManager.DTOs
         [Required]
         public string Name { get; set; }
         [Required]
-        public DateTimeOffset DateFrom { get; set; }
+        public DateTime DateFrom { get; set; }
         [Required]
-        public DateTimeOffset DateTo { get; set; }
+        public DateTime DateTo { get; set; }
 
         public bool IsValid(out string errorMessage)
         {

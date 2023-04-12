@@ -6,7 +6,7 @@ namespace BusinessEconomyManager.DTOs
     public class UpdateBusinessSaleTransactionRequestDto
     {
         [Required]
-        public DateTime Date { get; set; }
+        public DateTimeOffset Date { get; set; }
         [Required]
         public double Amount { get; set; }
         public string Description { get; set; }

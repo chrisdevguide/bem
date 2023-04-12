@@ -8,9 +8,9 @@ namespace BusinessEconomyManager.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        public DateTime DateFrom { get; set; }
+        public DateTimeOffset DateFrom { get; set; }
         [Required]
-        public DateTime DateTo { get; set; }
+        public DateTimeOffset DateTo { get; set; }
         public List<BusinessSaleTransaction> BusinessSaleTransactions { get; set; }
         public List<BusinessExpenseTransaction> BusinessExpenseTransactions { get; set; }
         public double AccountCashBalance { get; set; }

@@ -24,13 +24,13 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         Task<List<Supplier>> GetAppUserSuppliers(Guid appUserId);
         Task<Business> GetBusiness(Guid appUserId);
         Task<BusinessExpenseTransaction> GetBusinessExpenseTransaction(Guid transactionId, Guid appUserId);
-        Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
+        Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTimeOffset dateFrom, DateTimeOffset dateTo, Guid appUserId);
         Task<BusinessPeriod> GetBusinessPeriod(Guid businessPeriodId, Guid appUserId);
-        Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, DateTime endDate, Guid appUserId);
-        Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, Guid appUserId);
+        Task<List<BusinessPeriod>> GetBusinessPeriods(DateTimeOffset startDate, DateTimeOffset endDate, Guid appUserId);
+        Task<List<BusinessPeriod>> GetBusinessPeriods(DateTimeOffset startDate, Guid appUserId);
         Task<List<BusinessSaleDayReport>> GetBusinessSaleDayReports(GetBusinessStatisticsRequestDto request, Guid appUserId);
         Task<BusinessSaleTransaction> GetBusinessSaleTransaction(Guid transactionId, Guid appUserId);
-        Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId);
+        Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTimeOffset dateFrom, DateTimeOffset dateTo, Guid appUserId);
         Task<BusinessPeriod> GetLastClosedBusinessPeriod(Guid appUserId);
         Task<Supplier> GetSupplier(Guid supplierId, Guid appUserId);
         Task<List<Supplier>> GetSupplierByNames(List<string> names, Guid appUserId);

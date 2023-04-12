@@ -6,7 +6,7 @@ namespace BusinessEconomyManager.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         [Required]
-        public DateTime Date { get; set; }
+        public DateTimeOffset Date { get; set; }
         [Required]
         public double Amount { get; set; }
         [Required]

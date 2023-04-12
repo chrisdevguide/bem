@@ -170,7 +170,7 @@ namespace BusinessEconomyManager.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<GetBusinessStatisticsResponseDto>> GetBusinessStatistics([Required] DateTime dateFrom, [Required] DateTime dateTo)
+        public async Task<ActionResult<GetBusinessStatisticsResponseDto>> GetBusinessStatistics([Required] DateTimeOffset dateFrom, [Required] DateTimeOffset dateTo)
         {
             Guid appUserId = Guid.Parse(User.GetClaim(AuthenticationService.appUserIdClaimName, false));
             GetBusinessStatisticsRequestDto request = new()

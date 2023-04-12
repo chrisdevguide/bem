@@ -196,14 +196,14 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.Suppliers.SingleOrDefaultAsync(x => x.Id == supplierId && x.Business.AppUserId == appUserId);
         }
 
-        public async Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
+        public async Task<List<BusinessSaleTransaction>> GetBusinessSaleTransactions(DateTimeOffset dateFrom, DateTimeOffset dateTo, Guid appUserId)
         {
             return await _dataContext.BusinessSaleTransactions
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
                 .ToListAsync();
         }
 
-        public async Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTime dateFrom, DateTime dateTo, Guid appUserId)
+        public async Task<List<BusinessExpenseTransaction>> GetBusinessExpenseTransactions(DateTimeOffset dateFrom, DateTimeOffset dateTo, Guid appUserId)
         {
             return await _dataContext.BusinessExpenseTransactions
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= dateFrom && x.Date <= dateTo)
@@ -270,7 +270,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
             return await _dataContext.BusinessPeriods.AnyAsync(x => x.Id == businessPeriodId && x.Business.AppUserId == appUserId && x.Closed);
         }
 
-        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, Guid appUserId)
+        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTimeOffset startDate, Guid appUserId)
         {
             return await _dataContext.BusinessPeriods
                 .Include(x => x.BusinessExpenseTransactions)
@@ -279,7 +279,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTime startDate, DateTime endDate, Guid appUserId)
+        public async Task<List<BusinessPeriod>> GetBusinessPeriods(DateTimeOffset startDate, DateTimeOffset endDate, Guid appUserId)
         {
             return await _dataContext.BusinessPeriods
                 .Include(x => x.BusinessExpenseTransactions)
@@ -432,7 +432,7 @@ namespace BusinessEconomyManager.Data.Repositories.Implementations
         {
             return await _dataContext.BusinessSaleTransactions
                 .Where(x => x.BusinessPeriod.Business.AppUserId == appUserId && x.Date >= request.DateFrom && x.Date <= request.DateTo)
-                .GroupBy(x => x.Date.Date)
+                .GroupBy(x => x.Date)
                 .Select(x => new BusinessSaleDayReport()
                 {
                     Date = x.FirstOrDefault().Date,

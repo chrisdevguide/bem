@@ -13,10 +13,10 @@ namespace BusinessEconomyManager.Migrations
                 name: "AppUsers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EmailAddress = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EmailAddress = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
+                    PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,9 +27,9 @@ namespace BusinessEconomyManager.Migrations
                 name: "Businesses",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AppUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    AppUserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -45,14 +45,14 @@ namespace BusinessEconomyManager.Migrations
                 name: "BusinessPeriods",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DateFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DateTo = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AccountCashBalance = table.Column<double>(type: "float", nullable: false),
-                    AccountCreditCardBalance = table.Column<double>(type: "float", nullable: false),
-                    Closed = table.Column<bool>(type: "bit", nullable: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    DateFrom = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    DateTo = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    AccountCashBalance = table.Column<double>(type: "double precision", nullable: false),
+                    AccountCreditCardBalance = table.Column<double>(type: "double precision", nullable: false),
+                    Closed = table.Column<bool>(type: "boolean", nullable: false),
+                    BusinessId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -68,9 +68,9 @@ namespace BusinessEconomyManager.Migrations
                 name: "SupplierCategories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    BusinessId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -86,12 +86,12 @@ namespace BusinessEconomyManager.Migrations
                 name: "BusinessSaleTransactions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TransactionPaymentType = table.Column<int>(type: "int", nullable: false),
-                    BusinessPeriodId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Amount = table.Column<double>(type: "double precision", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    TransactionPaymentType = table.Column<int>(type: "integer", nullable: false),
+                    BusinessPeriodId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -107,11 +107,11 @@ namespace BusinessEconomyManager.Migrations
                 name: "Suppliers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SupplierCategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SupplierCategoryId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -132,13 +132,13 @@ namespace BusinessEconomyManager.Migrations
                 name: "BusinessExpenseTransactions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false),
-                    TransactionPaymentType = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    BusinessPeriodId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Amount = table.Column<double>(type: "double precision", nullable: false),
+                    TransactionPaymentType = table.Column<int>(type: "integer", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    SupplierId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BusinessPeriodId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {

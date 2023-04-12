@@ -137,7 +137,7 @@ namespace BusinessEconomyManager.Services.Implementations
                 }
             }
 
-            var dates = businessExpenseTransactions.Select(x => x.Date).Concat(businessSaleTransactions.Select(x => x.Date).ToList());
+            var dates = businessExpenseTransactions.Select(x => x.Date).Concat(businessSaleTransactions.Select(x => x.Date));
 
             BusinessPeriod businessPeriod = new()
             {
@@ -361,9 +361,9 @@ namespace BusinessEconomyManager.Services.Implementations
         {
             if (!request.IsValid(out string errorMessage)) throw new ApiException(errorMessage);
 
-            List<BusinessSaleTransaction> businessSaleTransactions = await _businessRepository.GetBusinessSaleTransactions(request.DateFrom, request.DateTo, appUserId);
-            List<BusinessExpenseTransaction> businessExpenseTransactions = await _businessRepository.GetBusinessExpenseTransactions(request.DateFrom, request.DateTo, appUserId);
             List<BusinessPeriod> businessPeriods = await _businessRepository.GetBusinessPeriods(request.DateFrom, request.DateTo, appUserId);
+            List<BusinessSaleTransaction> businessSaleTransactions = businessPeriods.SelectMany(x => x.BusinessSaleTransactions).ToList();
+            List<BusinessExpenseTransaction> businessExpenseTransactions = businessPeriods.SelectMany(x => x.BusinessExpenseTransactions).ToList();
 
             return new()
             {
@@ -479,7 +479,7 @@ namespace BusinessEconomyManager.Services.Implementations
         public async Task<GetAccountBalanceResponseDto> GetAccountBalance(Guid appUserId)
         {
             BusinessPeriod lastClosedBusinessPeriod = await _businessRepository.GetLastClosedBusinessPeriod(appUserId);
-            DateTime startDate = lastClosedBusinessPeriod is null ? DateTime.MinValue : lastClosedBusinessPeriod.DateTo;
+            DateTimeOffset startDate = lastClosedBusinessPeriod is null ? DateTimeOffset.MinValue : lastClosedBusinessPeriod.DateTo;
             List<BusinessPeriod> lastBusinessPeriods = await _businessRepository.GetBusinessPeriods(startDate, appUserId);
             return new()
             {

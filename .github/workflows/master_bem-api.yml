@@ -53,5 +53,5 @@ jobs:
         with:
           app-name: 'bem-api'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BE38FAAB63E8410FAE0D1868BBE984EF }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9686BF637F344FBC9E1CC985384F8C68 }}
           package: .

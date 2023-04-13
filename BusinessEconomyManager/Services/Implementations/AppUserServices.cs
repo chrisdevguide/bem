@@ -62,11 +62,7 @@ namespace BusinessEconomyManager.Services.Implementations
             };
 
             if (!CheckAppUserPassword(appUser, password))
-                throw new ApiException()
-                {
-                    ErrorMessage = "Password was incorrect.",
-                    StatusCode = StatusCodes.Status401Unauthorized
-                };
+                throw new ApiException("Password was incorrect.");
 
             return new()
             {

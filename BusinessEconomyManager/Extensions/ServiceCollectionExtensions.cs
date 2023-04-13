@@ -27,7 +27,7 @@ namespace BusinessEconomyManager.Extensions
 
             services.AddCors((options) =>
             {
-                options.AddDefaultPolicy(builder => { builder.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyHeader().AllowAnyMethod(); });
+                options.AddDefaultPolicy(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
             });
 
             services.AddScoped<IAppUserRepository, AppUserRepository>();

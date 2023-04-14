@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BusinessEconomyManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230412182954_first")]
+    [Migration("20230414121306_first")]
     partial class first
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

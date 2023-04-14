@@ -12,7 +12,8 @@ namespace BusinessEconomyManager.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
+
+        public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
         {
             services.AddSwaggerGen();
             services.AddAutoMapper(typeof(Program));
@@ -27,7 +28,7 @@ namespace BusinessEconomyManager.Extensions
 
             services.AddCors((options) =>
             {
-                options.AddDefaultPolicy(builder => { builder.WithOrigins("https://victorious-island-087a10203.3.azurestaticapps.net").AllowAnyHeader().AllowAnyMethod(); });
+                options.AddDefaultPolicy(builder => { builder.WithOrigins((isDevelopment) ? "http://localhost:4200" : "https://victorious-island-087a10203.3.azurestaticapps.net").AllowAnyHeader().AllowAnyMethod(); });
             });
 
             services.AddScoped<IAppUserRepository, AppUserRepository>();

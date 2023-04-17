@@ -252,16 +252,23 @@ namespace BusinessEconomyManager.Services.Implementations
             if (businessPeriod.Closed) throw new ApiException("Business period is closed.");
 
             if (!request.IsValid(businessPeriod, out string errorMessage)) throw new ApiException(errorMessage);
+            BusinessSaleTransaction businessSaleTransaction;
 
-            BusinessSaleTransaction businessSaleTransaction = _mapper.Map<BusinessSaleTransaction>(request);
-            businessSaleTransaction.Amount = request.CashAmount;
-            businessSaleTransaction.TransactionPaymentType = TransactionPaymentType.Cash;
-            await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
+            if (request.CashAmount > 0)
+            {
+                businessSaleTransaction = _mapper.Map<BusinessSaleTransaction>(request);
+                businessSaleTransaction.Amount = request.CashAmount;
+                businessSaleTransaction.TransactionPaymentType = TransactionPaymentType.Cash;
+                await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
+            }
 
-            businessSaleTransaction = _mapper.Map<BusinessSaleTransaction>(request);
-            businessSaleTransaction.Amount = request.CreditCardAmount;
-            businessSaleTransaction.TransactionPaymentType = TransactionPaymentType.CreditCard;
-            await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
+            if (request.CreditCardAmount > 0)
+            {
+                businessSaleTransaction = _mapper.Map<BusinessSaleTransaction>(request);
+                businessSaleTransaction.Amount = request.CreditCardAmount;
+                businessSaleTransaction.TransactionPaymentType = TransactionPaymentType.CreditCard;
+                await _businessRepository.CreateBusinessSaleTransaction(businessSaleTransaction);
+            }
         }
 
         public async Task UpdateBusinessSaleTransaction(UpdateBusinessSaleTransactionRequestDto request, Guid appUserId)
@@ -502,8 +509,8 @@ namespace BusinessEconomyManager.Services.Implementations
             if (await _businessRepository.IsBusinessPeriodClosed(businessPeriodId, appUserId)) throw new ApiException("Business period is closed.");
 
             BusinessPeriod lastClosedBusinessPeriod = await _businessRepository.GetLastClosedBusinessPeriod(appUserId);
-            businessPeriod.AccountCashBalance = lastClosedBusinessPeriod.AccountCashBalance + DefineBusinessPeriodAccountCashBalance(businessPeriod);
-            businessPeriod.AccountCreditCardBalance = lastClosedBusinessPeriod.AccountCreditCardBalance + DefineBusinessPeriodAccountCreditCardBalance(businessPeriod);
+            businessPeriod.AccountCashBalance = lastClosedBusinessPeriod?.AccountCashBalance ?? 0 + DefineBusinessPeriodAccountCashBalance(businessPeriod);
+            businessPeriod.AccountCreditCardBalance = lastClosedBusinessPeriod?.AccountCreditCardBalance ?? 0 + DefineBusinessPeriodAccountCreditCardBalance(businessPeriod);
 
             await _businessRepository.UpdateBusinessPeriod(businessPeriod);
         }
@@ -560,7 +567,7 @@ namespace BusinessEconomyManager.Services.Implementations
 
             worksheetExpenses.Cell(2, 8).FormulaA1 = "=SUMIF(D:D, \"Efectivo\", C:C)";
             worksheetExpenses.Cell(2, 9).FormulaA1 = "=SUMIF(D:D, \"Tarjeta\", C:C)";
-            worksheetExpenses.Cell(2, 10).FormulaA1 = "=G2+H2";
+            worksheetExpenses.Cell(2, 10).FormulaA1 = "=H2+I2";
 
 
             IXLWorksheet worksheetSales = workbook.Worksheets.Add($"Ventas {businessPeriod.Name}");
@@ -609,7 +616,7 @@ namespace BusinessEconomyManager.Services.Implementations
             columnToFormatToEuro.ForEach(x => worksheet.Column(x).Style.NumberFormat.Format = "€ #,##0.00");
             worksheet.Rows().Height = 30;
             firstRow.Height = 35;
-
+            worksheet.SheetView.FreezeRows(1);
         }
 
         public async Task<List<BusinessSaleTransaction>> SearchBusinessSaleTransactions(SearchBusinessSaleTransactionsRequestDto request, Guid appUserId)

@@ -28,7 +28,7 @@ namespace BusinessEconomyManager.Extensions
 
             services.AddCors((options) =>
             {
-                options.AddDefaultPolicy(builder => { builder.WithOrigins((isDevelopment) ? "http://localhost:4200" : "https://victorious-island-087a10203.3.azurestaticapps.net").AllowAnyHeader().AllowAnyMethod(); });
+                options.AddDefaultPolicy(builder => { builder.WithOrigins((isDevelopment) ? "http://localhost:4200" : "https://businesseconomymanager.web.app").AllowAnyHeader().AllowAnyMethod(); });
             });
 
             services.AddScoped<IAppUserRepository, AppUserRepository>();
